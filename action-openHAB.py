@@ -80,7 +80,10 @@ def intent_callback(hermes, intent_message):
         device, room = get_item_and_room(intent_message)
 
         if room is None:
-            room = conf['secret']['room_of_device_default']
+            if intent_message.site_id == "default":
+                room = conf['secret']['room_of_device_default']
+            else:
+                room = intent_message.site_id
 
         if device is None:
             hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE)
