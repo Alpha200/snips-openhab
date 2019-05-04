@@ -35,15 +35,15 @@ def read_configuration_file(configuration_file):
 
 
 def get_item_and_room(intent_message):
-    devices = [slot.value.value for slot in intent_message.slots if slot.slotName == "device"]
-    rooms = [slot.value.value for slot in intent_message.slots if slot.slotName == "room"]
-
-    if len(devices) == 0:
+    if len(intent_message.slots.device) == 0:
         return None, None
 
-    room = rooms[0] if len(rooms) > 0 else None
+    if len(intent_message.slots.room) > 0:
+        room = intent_message.slots.room.first().value
+    else:
+        room = None
 
-    return devices[0], room
+    return intent_message.slots.device.first().value, room
 
 
 UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du einschalten möchtest."
@@ -92,7 +92,7 @@ def intent_callback(hermes, intent_message):
             hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE)
             return
 
-        command = "ON" if intent_name == "switchDeviceOn" else "OFF"
+        command = "ON" if intent_name == user_intent("switchDeviceOn") else "OFF"
 
         openhab.send_command_to_devices(relevant_devices, command)
         result_sentence = generate_switch_result_sentence(relevant_devices, command)
