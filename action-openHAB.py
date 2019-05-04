@@ -10,7 +10,7 @@ import io
 
 CONFIGURATION_ENCODING_FORMAT = "utf-8"
 CONFIG_INI = "config.ini"
-USER_PREFIX = "Alpha200:"
+USER_PREFIX = "Alpha200"
 
 
 def user_intent(intent_name):
