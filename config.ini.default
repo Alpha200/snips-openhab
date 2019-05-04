@@ -1,0 +1,5 @@
+[global]
+
+[secret]
+openhab_server_url=http://localhost:8080
+room_of_device_default=
