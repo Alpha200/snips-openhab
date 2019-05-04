@@ -47,6 +47,7 @@ def get_item_and_room(intent_message):
 
 
 UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du einschalten möchtest."
+UNKNOWN_TEMPERATURE = "Die Temperatur im Raum {0} ist unbekannt."
 
 
 def generate_switch_result_sentence(devices, command):
@@ -67,10 +68,21 @@ def generate_switch_result_sentence(devices, command):
         )
 
 
+def get_room_for_current_site(intent_message, default_room):
+    if intent_message.site_id == "default":
+        return default_room
+    else:
+        return intent_message.site_id
+
+
 def intent_callback(hermes, intent_message):
     intent_name = intent_message.intent.intent_name
 
-    if intent_name not in [user_intent("switchDeviceOn"), user_intent("switchDeviceOff")]:
+    if intent_name not in [
+        user_intent("switchDeviceOn"),
+        user_intent("switchDeviceOff"),
+        user_intent("getTemperature")
+    ]:
         return
 
     conf = read_configuration_file(CONFIG_INI)
@@ -80,10 +92,7 @@ def intent_callback(hermes, intent_message):
         device, room = get_item_and_room(intent_message)
 
         if room is None:
-            if intent_message.site_id == "default":
-                room = conf['secret']['room_of_device_default']
-            else:
-                room = intent_message.site_id
+            get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
 
         if device is None:
             hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE)
@@ -100,6 +109,25 @@ def intent_callback(hermes, intent_message):
         openhab.send_command_to_devices(relevant_devices, command)
         result_sentence = generate_switch_result_sentence(relevant_devices, command)
         hermes.publish_end_session(intent_message.session_id, result_sentence)
+    elif intent_name == user_intent("getTemperature"):
+        if len(intent_message.slots.room) > 0:
+            room = intent_message.slots.room.first().value
+        else:
+            room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+
+        items = openhab.get_relevant_items("temperature", room, "Number")
+
+        if len(items) > 0:
+            state = openhab.get_state(items[0])
+
+            if state is None:
+                hermes.publish_end_session(intent_message.session_id, UNKNOWN_TEMPERATURE.format(room))
+                return
+
+            formatted_temperature = state.replace(".", ",")
+            hermes.publish_end_session(intent_message.session_id, "Die Temperatur im Raum {0} beträgt {1} Grad.".format(room, formatted_temperature))
+        else:
+            hermes.publish_end_session(intent_message.session_id, "Ich habe keinen Temperatursensor im Raum {0} gefunden.".format(room))
 
 
 if __name__ == "__main__":

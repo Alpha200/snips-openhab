@@ -2,11 +2,12 @@ import requests
 
 
 class Item:
-    def __init__(self, name, tags, label, group_names):
+    def __init__(self, name, tags, label, group_names, item_type):
         self.name = name
         self.tags = [tag.lower() for tag in tags]
         self.label = label
         self.group_names = [group_name.lower() for group_name in group_names]
+        self.item_type = item_type
 
         if self.label is not None:
             self.label = self.label.lower()
@@ -35,9 +36,8 @@ class OpenHAB:
 
     def load_items(self):
         params = dict(
-            type="Switch",
             recursive="false",
-            fields="name,groupNames,label,tags"
+            fields="name,groupNames,label,tags,type"
         )
 
         url = "{0}/rest/items".format(self.openhab_server_url)
@@ -52,7 +52,8 @@ class OpenHAB:
                 item_result['name'],
                 item_result['tags'],
                 item_result.get('label', None),
-                item_result['groupNames']
+                item_result['groupNames'],
+                item_result['type']
             )
 
             if item.label is not None:
@@ -61,7 +62,7 @@ class OpenHAB:
             for tag in item.tags:
                 self.by_tag.setdefault(tag, []).append(item)
 
-    def get_relevant_items(self, spoken_item, spoken_room=None):
+    def get_relevant_items(self, spoken_item, spoken_room=None, item_type="Switch"):
         spoken_item = spoken_item.lower()
 
         if spoken_item in self.by_tag:
@@ -71,8 +72,10 @@ class OpenHAB:
         else:
             items = []
 
-        if spoken_room is not None:
-            items = [item for item in items if spoken_room.lower() in item.group_names]
+        items = [
+            item for item in items
+            if (spoken_room is None or spoken_room.lower() in item.group_names) and item.item_type == item_type
+        ]
 
         return items
 
@@ -80,3 +83,18 @@ class OpenHAB:
         for device in devices:
             url = "{0}/rest/items/{1}".format(self.openhab_server_url, device.name)
             requests.post(url, command)
+
+    def get_state(self, item):
+        url = "{0}/rest/items/{1}".format(self.openhab_server_url, item.name)
+        result = requests.get(url)
+
+        if result.status_code != 200:
+            return None
+
+        data = result.json()
+        state = data['state']
+
+        if state == "NULL":
+            state = None
+
+        return state
