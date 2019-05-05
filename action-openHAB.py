@@ -94,7 +94,7 @@ def intent_callback(hermes, intent_message):
         command = "ON" if intent_name == user_intent("switchDeviceOn") else "OFF"
 
         if room is None:
-            get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+            room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
 
         if device is None:
             hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
