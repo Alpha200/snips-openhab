@@ -46,7 +46,7 @@ def get_item_and_room(intent_message):
     return intent_message.slots.device.first().value, room
 
 
-UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du einschalten möchtest."
+UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {0} möchtest."
 UNKNOWN_TEMPERATURE = "Die Temperatur im Raum {0} ist unbekannt."
 
 
@@ -91,20 +91,20 @@ def intent_callback(hermes, intent_message):
     if intent_name in [user_intent("switchDeviceOn"), user_intent("switchDeviceOff")]:
         device, room = get_item_and_room(intent_message)
 
+        command = "ON" if intent_name == user_intent("switchDeviceOn") else "OFF"
+
         if room is None:
             get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
 
         if device is None:
-            hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE)
+            hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
             return
 
         relevant_devices = openhab.get_relevant_items(device, room)
 
         if len(relevant_devices) == 0:
-            hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE)
+            hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
             return
-
-        command = "ON" if intent_name == user_intent("switchDeviceOn") else "OFF"
 
         openhab.send_command_to_devices(relevant_devices, command)
         result_sentence = generate_switch_result_sentence(relevant_devices, command)
