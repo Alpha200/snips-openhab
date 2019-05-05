@@ -6,8 +6,10 @@ class Item:
         self.name = name
         self.tags = [tag.lower() for tag in tags]
         self.label = label
-        self.group_names = [group_name.lower() for group_name in group_names]
+        self.group_names = group_names
         self.item_type = item_type
+        self.is_location = False
+        self.aliases = []
 
         if self.label is not None:
             self.label = self.label.lower()
@@ -29,12 +31,40 @@ class OpenHAB:
     def __init__(self, openhab_server_url):
         self.openhab_server_url = openhab_server_url
 
-        self.by_tag = {}
-        self.by_label = {}
+        self.items = []
+        self.locations = {}
 
         self.load_items()
 
+    def find_location(self, spoken_location):
+        return next((location for location in self.locations.values() if spoken_location in location.aliases), None)
+
+    def group_is_location_in_location(self, group, location):
+        if group == location.name:
+            return True
+
+        if group in self.locations:
+            current_location = self.locations[group]
+
+            for parent in current_location.group_names:
+                if self.group_is_location_in_location(parent, location):
+                    return True
+
+        return False
+
+    def item_is_in_location(self, item, location):
+        for group in item.group_names:
+            if self.group_is_location_in_location(group, location):
+                return True
+
+        return False
+
     def load_items(self):
+        attribute_result = requests.get("{0}/rest/habot/attributes".format(self.openhab_server_url))
+        attribute_result.raise_for_status()
+
+        attributes = attribute_result.json()
+
         params = dict(
             recursive="false",
             fields="name,groupNames,label,tags,type"
@@ -56,26 +86,28 @@ class OpenHAB:
                 item_result['type']
             )
 
-            if item.label is not None:
-                self.by_label.setdefault(item.label, []).append(item)
+            if item.name in attributes:
+                item_attributes = attributes[item.name]
+                item.aliases = [attribute['value'].lower() for attribute in item_attributes]
+                item.is_location = any((item_attribute['type'] == "LOCATION" for item_attribute in item_attributes))
 
-            for tag in item.tags:
-                self.by_tag.setdefault(tag, []).append(item)
+            if item.item_type == "Group" and item.is_location:
+                self.locations[item.name] = item
+
+            self.items.append(item)
 
     def get_relevant_items(self, spoken_item, spoken_room=None, item_type="Switch"):
         spoken_item = spoken_item.lower()
 
-        if spoken_item in self.by_tag:
-            items = self.by_tag[spoken_item]
-        elif spoken_item in self.by_label:
-            items = self.by_label[spoken_item]
-        else:
-            items = []
+        items = [item for item in self.items if spoken_item in item.aliases and item.item_type == item_type]
 
-        items = [
-            item for item in items
-            if (spoken_room is None or spoken_room.lower() in item.group_names) and item.item_type == item_type
-        ]
+        if spoken_room is not None:
+            location = self.find_location(spoken_room)
+
+            if location is None:
+                return []
+
+            items = [item for item in items if self.item_is_in_location(item, location)]
 
         return items
 
