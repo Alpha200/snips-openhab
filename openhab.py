@@ -97,9 +97,12 @@ class OpenHAB:
             self.items.append(item)
 
     def get_relevant_items(self, spoken_item, spoken_room=None, item_type="Switch"):
-        spoken_item = spoken_item.lower()
-
-        items = [item for item in self.items if spoken_item in item.aliases and item.item_type == item_type]
+        if isinstance(spoken_item, list):
+            spoken_items = set([item.lower() for item in spoken_item])
+            items = [item for item in self.items if spoken_items.issubset(set(item.aliases))]
+        else:
+            spoken_item = spoken_item.lower()
+            items = [item for item in self.items if spoken_item in item.aliases and item.item_type == item_type]
 
         if spoken_room is not None:
             location = self.find_location(spoken_room)
