@@ -49,6 +49,7 @@ def get_item_and_room(intent_message):
 UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {0} möchtest."
 UNKNOWN_TEMPERATURE = "Die Temperatur im Raum {0} ist unbekannt."
 UNKNOWN_PROPERTY = "Ich habe nicht verstanden, welche Eigenschaft verändert werden soll."
+FEATURE_NOT_IMPLEMENTED = "Diese Funktionalität ist aktuell nicht implementiert."
 
 
 def generate_switch_result_sentence(devices, command):
@@ -84,7 +85,8 @@ def intent_callback(hermes, intent_message):
         user_intent("switchDeviceOff"),
         user_intent("getTemperature"),
         user_intent("increaseItem"),
-        user_intent("decreaseItem")
+        user_intent("decreaseItem"),
+        user_intent("setValue")
     ):
         return
 
@@ -191,6 +193,11 @@ def intent_callback(hermes, intent_message):
                     "erhöhen" if increase else "verringern"
                 )
             )
+    elif intent_name == user_intent("setValue"):
+        hermes.publish_end_session(
+            intent_message.session_id,
+            FEATURE_NOT_IMPLEMENTED
+        )
 
 
 if __name__ == "__main__":
