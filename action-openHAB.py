@@ -86,7 +86,9 @@ def intent_callback(hermes, intent_message):
         user_intent("getTemperature"),
         user_intent("increaseItem"),
         user_intent("decreaseItem"),
-        user_intent("setValue")
+        user_intent("setValue"),
+        user_intent("playMedia"),
+        user_intent("pauseMedia")
     ):
         return
 
@@ -197,6 +199,27 @@ def intent_callback(hermes, intent_message):
         hermes.publish_end_session(
             intent_message.session_id,
             FEATURE_NOT_IMPLEMENTED
+        )
+    elif intent_message in [user_intent("playMedia"), user_intent("pauseMedia")]:
+        if len(intent_message.slots.room) > 0:
+            room = intent_message.slots.room.first().value
+        else:
+            room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+
+        items = openhab.get_relevant_items("fernbedienung", room, "Player")
+        send_play = intent_message == user_intent("playMedia")
+
+        if len(items) == 0:
+            hermes.publish_end_session(
+                intent_message.session_id,
+                "Ich habe kein Gerät gefunden, auf dem die Wiedergabe geändert werden kann."
+            )
+            return
+
+        openhab.send_command_to_devices(items, "PLAY" if send_play else "PAUSE")
+        hermes.publish_end_session(
+            intent_message.session_id,
+            "Ich habe die Wiedergabe im Raum {} {}".format(room, "fortgesetzt" if send_play else "pausiert")
         )
 
 
