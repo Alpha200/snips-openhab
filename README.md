@@ -46,6 +46,13 @@ Items vom Typ ```Dimmer``` können mit folgenden Befehlen verändert werden.
 
 Die Items müssen dazu mit ihrer Eigenschaft (z.B. ```Temperature```) und dem Tag ```Setpoint``` getaggt sein.
 
+### Wiedergabe steuern
+
+Items vom Typ ```Player``` können ebenfalls gesteuert werden:
+
+* Setze die Wiedergabe fort
+* Pausiere die Wiedergabe im Wohnzimmer
+
 ## Multi-Room
 
 Die App ist Multi-Room-fähig. Für jeden Befehl kann der Raum weggelassen werden.
