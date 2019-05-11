@@ -134,9 +134,15 @@ def intent_callback(hermes, intent_message):
                 return
 
             formatted_temperature = state.replace(".", ",")
-            hermes.publish_end_session(intent_message.session_id, "Die Temperatur im Raum {0} beträgt {1} Grad.".format(room, formatted_temperature))
+            hermes.publish_end_session(
+                intent_message.session_id,
+                "Die Temperatur im Raum {0} beträgt {1} Grad.".format(room, formatted_temperature)
+            )
         else:
-            hermes.publish_end_session(intent_message.session_id, "Ich habe keinen Temperatursensor im Raum {0} gefunden.".format(room))
+            hermes.publish_end_session(
+                intent_message.session_id,
+                "Ich habe keinen Temperatursensor im Raum {0} gefunden.".format(room)
+            )
     elif intent_name in (user_intent("increaseItem"), user_intent("decreaseItem")):
         increase = intent_name == user_intent("increaseItem")
 
