@@ -105,7 +105,7 @@ class OpenHAB:
             items = [item for item in self.items if spoken_item in item.aliases and item.item_type == item_type]
 
         if spoken_room is not None:
-            location = self.find_location(spoken_room)
+            location = self.find_location(spoken_room.lower())
 
             if location is None:
                 return []

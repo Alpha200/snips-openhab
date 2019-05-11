@@ -73,8 +73,8 @@ def generate_switch_result_sentence(devices, command):
         return "Ich habe dir {} {}.".format(gd.get(devices[0].description(), Case.ACCUSATIVE), command_spoken)
     else:
         return "Ich habe dir {} {}.".format(
-            ", ".join(gd.get(device.description(), Case.ACCUSATIVE) for device in devices[:len(devices) - 1]) + " und " + devices[
-                len(devices) - 1].description(),
+            ", ".join(gd.get(device.description(), Case.ACCUSATIVE) for device in devices[:len(devices) - 1])
+            + " und " + gd.get(devices[len(devices) - 1].description(), Case.ACCUSATIVE),
             command_spoken
         )
 
