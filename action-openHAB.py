@@ -17,7 +17,7 @@ gd = GenderDeterminator()
 
 
 def inject_local_preposition(noun):
-    word = gd.get(noun, Case.DATIVE)
+    word = gd.get(noun, Case.DATIVE, append=False)
     word = "im" if word == "dem" else "in der"
     return "{} {}".format(word, noun)
 
