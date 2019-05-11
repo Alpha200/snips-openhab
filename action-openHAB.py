@@ -221,14 +221,14 @@ def intent_callback(hermes, intent_message):
             intent_message.session_id,
             FEATURE_NOT_IMPLEMENTED
         )
-    elif intent_message in [user_intent("playMedia"), user_intent("pauseMedia")]:
+    elif intent_name in [user_intent("playMedia"), user_intent("pauseMedia")]:
         if len(intent_message.slots.room) > 0:
             room = intent_message.slots.room.first().value
         else:
             room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
 
         items = openhab.get_relevant_items("fernbedienung", room, "Player")
-        send_play = intent_message == user_intent("playMedia")
+        send_play = intent_name == user_intent("playMedia")
 
         if len(items) == 0:
             hermes.publish_end_session(
