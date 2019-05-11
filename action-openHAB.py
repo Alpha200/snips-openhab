@@ -5,6 +5,7 @@ import configparser
 from hermes_python.hermes import Hermes
 from hermes_python.ffi.utils import MqttOptions
 from openhab import OpenHAB
+from genderdeterminator import GenderDeterminator, Case
 import io
 
 
@@ -12,9 +13,17 @@ CONFIGURATION_ENCODING_FORMAT = "utf-8"
 CONFIG_INI = "config.ini"
 USER_PREFIX = "Alpha200"
 
+gd = GenderDeterminator()
+
+
+def inject_local_preposition(noun):
+    word = gd.get(noun, Case.DATIVE)
+    word = "im" if word == "dem" else "in der"
+    return "{} {}".format(word, noun)
+
 
 def user_intent(intent_name):
-    return "{0}:{1}".format(USER_PREFIX, intent_name)
+    return "{}:{}".format(USER_PREFIX, intent_name)
 
 
 class SnipsConfigParser(configparser.SafeConfigParser):
@@ -46,8 +55,8 @@ def get_item_and_room(intent_message):
     return intent_message.slots.device.first().value, room
 
 
-UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {0} möchtest."
-UNKNOWN_TEMPERATURE = "Die Temperatur im Raum {0} ist unbekannt."
+UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {} möchtest."
+UNKNOWN_TEMPERATURE = "Die Temperatur im {} ist unbekannt."
 UNKNOWN_PROPERTY = "Ich habe nicht verstanden, welche Eigenschaft verändert werden soll."
 FEATURE_NOT_IMPLEMENTED = "Diese Funktionalität ist aktuell nicht implementiert."
 
@@ -61,10 +70,10 @@ def generate_switch_result_sentence(devices, command):
         command_spoken = ""
 
     if len(devices) == 1:
-        return "Ich habe dir das Gerät {0} {1}.".format(devices[0].description(), command_spoken)
+        return "Ich habe dir {} {}.".format(gd.get(devices[0].description(), Case.ACCUSATIVE), command_spoken)
     else:
-        return "Ich habe dir die Geräte {0} {1}.".format(
-            ", ".join(device.description() for device in devices[:len(devices) - 1]) + " und " + devices[
+        return "Ich habe dir {} {}.".format(
+            ", ".join(gd.get(device.description(), Case.ACCUSATIVE) for device in devices[:len(devices) - 1]) + " und " + devices[
                 len(devices) - 1].description(),
             command_spoken
         )
@@ -130,18 +139,21 @@ def intent_callback(hermes, intent_message):
             state = openhab.get_state(items[0])
 
             if state is None:
-                hermes.publish_end_session(intent_message.session_id, UNKNOWN_TEMPERATURE.format(room))
+                hermes.publish_end_session(
+                    intent_message.session_id,
+                    UNKNOWN_TEMPERATURE.format(inject_local_preposition(room))
+                )
                 return
 
             formatted_temperature = state.replace(".", ",")
             hermes.publish_end_session(
                 intent_message.session_id,
-                "Die Temperatur im Raum {0} beträgt {1} Grad.".format(room, formatted_temperature)
+                "Die Temperatur {} beträgt {} Grad.".format(inject_local_preposition(room), formatted_temperature)
             )
         else:
             hermes.publish_end_session(
                 intent_message.session_id,
-                "Ich habe keinen Temperatursensor im Raum {0} gefunden.".format(room)
+                "Ich habe keinen Temperatursensor {} gefunden.".format(inject_local_preposition(room))
             )
     elif intent_name in (user_intent("increaseItem"), user_intent("decreaseItem")):
         increase = intent_name == user_intent("increaseItem")
@@ -162,9 +174,9 @@ def intent_callback(hermes, intent_message):
             openhab.send_command_to_devices(items, "INCREASE" if increase else "DECREASE")
             hermes.publish_end_session(
                 intent_message.session_id,
-                "Ich habe die {} im Raum {} {}".format(
-                    device_property,
-                    room,
+                "Ich habe {} {} {}".format(
+                    gd.get(device_property, Case.ACCUSATIVE),
+                    inject_local_preposition(room),
                     "erhöht" if increase else "verringert"
                 )
             )
@@ -175,8 +187,8 @@ def intent_callback(hermes, intent_message):
                 openhab.send_command_to_devices(items, "ON" if increase else "OFF")
                 hermes.publish_end_session(
                     intent_message.session_id,
-                    "Ich habe die Beleuchtung im Raum {} {}.".format(
-                        room,
+                    "Ich habe die Beleuchtung {} {}.".format(
+                        inject_local_preposition(room),
                         "eingeschaltet" if increase else "ausgeschaltet"
                     )
                 )
@@ -189,15 +201,18 @@ def intent_callback(hermes, intent_message):
                 openhab.send_command_to_devices([items[0]], str(temperature))
                 hermes.publish_end_session(
                     intent_message.session_id,
-                    "Ich habe die gewünschte Temperatur im Raum {} auf {} Grad eingestellt".format(room, temperature)
+                    "Ich habe die gewünschte Temperatur {} auf {} Grad eingestellt".format(
+                        inject_local_preposition(room),
+                        temperature
+                    )
                 )
 
         if len(items) == 0:
             hermes.publish_end_session(
                 intent_message.session_id,
-                "Ich habe keine Möglichkeit gefunden, um die {} im {} zu {}".format(
-                    device_property,
-                    room,
+                "Ich habe keine Möglichkeit gefunden, um {} {} zu {}".format(
+                    gd.get(device_property, Case.ACCUSATIVE),
+                    inject_local_preposition(room),
                     "erhöhen" if increase else "verringern"
                 )
             )
@@ -225,7 +240,8 @@ def intent_callback(hermes, intent_message):
         openhab.send_command_to_devices(items, "PLAY" if send_play else "PAUSE")
         hermes.publish_end_session(
             intent_message.session_id,
-            "Ich habe die Wiedergabe im Raum {} {}".format(room, "fortgesetzt" if send_play else "pausiert")
+            "Ich habe die Wiedergabe {} {}".format(
+                inject_local_preposition(room), "fortgesetzt" if send_play else "pausiert")
         )
 
 

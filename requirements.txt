@@ -1,2 +1,3 @@
 requests
 hermes-python>=0.4.0
+gender-determinator==0.2
