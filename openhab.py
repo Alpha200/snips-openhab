@@ -67,7 +67,7 @@ class OpenHAB:
 
         params = dict(
             recursive="false",
-            fields="name,groupNames,label,tags,type"
+            fields="name,groupNames,label,tags,type,editable"
         )
 
         url = "{0}/rest/items".format(self.openhab_server_url)
