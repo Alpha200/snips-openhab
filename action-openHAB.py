@@ -52,7 +52,7 @@ def get_items_and_room(intent_message):
     else:
         room = None
 
-    return [x.value for x in intent_message.slots.device], room
+    return [x.value for x in intent_message.slots.device.all()], room
 
 
 UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {} möchtest."
@@ -116,7 +116,7 @@ def intent_callback(hermes, intent_message):
             hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
             return
 
-        relevant_devices = openhab.get_relevant_items(devices, room)
+        relevant_devices = openhab.get_relevant_items(devices, room, item_filter='or')
 
         if len(relevant_devices) == 0:
             hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
