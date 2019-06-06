@@ -96,12 +96,12 @@ class OpenHAB:
 
             self.items.append(item)
 
-    def get_relevant_items(self, spoken_item, spoken_room=None, item_type="Switch"):
-        if isinstance(spoken_item, list):
-            spoken_items = set([item.lower() for item in spoken_item])
+    def get_relevant_items(self, spoken_items, spoken_room=None, item_type="Switch"):
+        if isinstance(spoken_items, list):
+            spoken_items = set([item.lower() for item in spoken_items])
             items = [item for item in self.items if spoken_items.issubset(set(item.aliases))]
         else:
-            spoken_item = spoken_item.lower()
+            spoken_item = spoken_items.lower()
             items = [item for item in self.items if spoken_item in item.aliases and item.item_type == item_type]
 
         if spoken_room is not None:

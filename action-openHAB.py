@@ -43,7 +43,7 @@ def read_configuration_file(configuration_file):
         return dict()
 
 
-def get_item_and_room(intent_message):
+def get_items_and_room(intent_message):
     if len(intent_message.slots.device) == 0:
         return None, None
 
@@ -52,7 +52,7 @@ def get_item_and_room(intent_message):
     else:
         room = None
 
-    return intent_message.slots.device.first().value, room
+    return [x.value for x in intent_message.slots.device], room
 
 
 UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {} möchtest."
@@ -105,18 +105,18 @@ def intent_callback(hermes, intent_message):
     openhab = OpenHAB(conf['secret']['openhab_server_url'])
 
     if intent_name in (user_intent("switchDeviceOn"), user_intent("switchDeviceOff")):
-        device, room = get_item_and_room(intent_message)
+        devices, room = get_items_and_room(intent_message)
 
         command = "ON" if intent_name == user_intent("switchDeviceOn") else "OFF"
 
         if room is None:
             room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
 
-        if device is None:
+        if devices is None:
             hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
             return
 
-        relevant_devices = openhab.get_relevant_items(device, room)
+        relevant_devices = openhab.get_relevant_items(devices, room)
 
         if len(relevant_devices) == 0:
             hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
@@ -126,7 +126,7 @@ def intent_callback(hermes, intent_message):
         result_sentence = generate_switch_result_sentence(relevant_devices, command)
         hermes.publish_end_session(intent_message.session_id, result_sentence)
     elif intent_name == user_intent("getTemperature"):
-        # TOOD: Generalize this case as get property
+        # TODO: Generalize this case as get property
 
         if len(intent_message.slots.room) > 0:
             room = intent_message.slots.room.first().value
