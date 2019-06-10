@@ -97,7 +97,9 @@ def intent_callback(hermes, intent_message):
         user_intent("decreaseItem"),
         user_intent("setValue"),
         user_intent("playMedia"),
-        user_intent("pauseMedia")
+        user_intent("pauseMedia"),
+        user_intent("nextMedia"),
+        user_intent("previousMedia")
     ):
         return
 
@@ -221,14 +223,18 @@ def intent_callback(hermes, intent_message):
             intent_message.session_id,
             FEATURE_NOT_IMPLEMENTED
         )
-    elif intent_name in [user_intent("playMedia"), user_intent("pauseMedia")]:
+    elif intent_name in [
+        user_intent("playMedia"),
+        user_intent("pauseMedia"),
+        user_intent("nextMedia"),
+        user_intent("previousMedia")
+    ]:
         if len(intent_message.slots.room) > 0:
             room = intent_message.slots.room.first().value
         else:
             room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
 
         items = openhab.get_relevant_items("fernbedienung", room, "Player")
-        send_play = intent_name == user_intent("playMedia")
 
         if len(items) == 0:
             hermes.publish_end_session(
@@ -237,11 +243,23 @@ def intent_callback(hermes, intent_message):
             )
             return
 
-        openhab.send_command_to_devices(items, "PLAY" if send_play else "PAUSE")
+        if intent_name == user_intent("playMedia"):
+            command = "PLAY"
+            response = "Ich habe die Wiedergabe {} fortgesetzt".format(inject_local_preposition(room))
+        elif intent_name == user_intent("pauseMedia"):
+            command = "PAUSE"
+            response = "Ich habe die Wiedergabe {} pausiert".format(inject_local_preposition(room))
+        elif intent_name == user_intent("nextMedia"):
+            command = "NEXT"
+            response = "Die aktuelle Wiedergabe wird im {} übersprungen".format(inject_local_preposition(room))
+        else:
+            command = "PREVIOUS"
+            response = "Im {} geht es zurück zur vorherigen Wiedergabe".format(inject_local_preposition(room))
+
+        openhab.send_command_to_devices(items, command)
         hermes.publish_end_session(
             intent_message.session_id,
-            "Ich habe die Wiedergabe {} {}".format(
-                inject_local_preposition(room), "fortgesetzt" if send_play else "pausiert")
+            response
         )
 
 
