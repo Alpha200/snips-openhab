@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import configparser
-from hermes_python.hermes import Hermes
-from hermes_python.ffi.utils import MqttOptions
+from hermes_python.hermes import Hermes, MqttOptions
 from openhab import OpenHAB
 from genderdeterminator import GenderDeterminator, Case
 import io
+import toml
 
 
 CONFIGURATION_ENCODING_FORMAT = "utf-8"
@@ -246,7 +246,15 @@ def intent_callback(hermes, intent_message):
 
 
 if __name__ == "__main__":
-    mqtt_opts = MqttOptions()
+    snips_config = toml.load('/etc/snips.toml')
+    if 'mqtt' in snips_config['snips-common'].keys():
+        MQTT_BROKER_ADDRESS = snips_config['snips-common']['mqtt']
+    if 'mqtt_username' in snips_config['snips-common'].keys():
+        MQTT_USERNAME = snips_config['snips-common']['mqtt_username']
+    if 'mqtt_password' in snips_config['snips-common'].keys():
+        MQTT_PASSWORD = snips_config['snips-common']['mqtt_password']
+    mqtt_opts = MqttOptions(username=MQTT_USERNAME, password=MQTT_PASSWORD, broker_address=MQTT_BROKER_ADDRESS)
+
     with Hermes(mqtt_options=mqtt_opts) as h:
         h.subscribe_intents(intent_callback)
         h.start()
