@@ -3,6 +3,7 @@
 
 import configparser
 from hermes_python.hermes import Hermes, MqttOptions
+from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest, AddFromVanillaInjectionRequest
 from openhab import OpenHAB
 from genderdeterminator import GenderDeterminator, Case
 import io
@@ -19,7 +20,18 @@ USER_PREFIX = "Alpha200"
 gd = GenderDeterminator()
 
 
-def inject_local_preposition(noun):
+def inject_items(hermes):
+    conf = read_configuration_file(CONFIG_INI)
+    openhab = OpenHAB(conf['secret']['openhab_server_url'])
+    openhab.load_items()
+    items, locations = openhab.get_injections()
+
+    hermes.request_injection(InjectionRequestMessage([
+        AddFromVanillaInjectionRequest(dict(device=items, room=locations))
+    ]))
+
+
+def add_local_preposition(noun):
     word = gd.get(noun, Case.DATIVE, append=False)
     word = "im" if word == "dem" else "in der"
     return "{} {}".format(word, noun)
@@ -146,19 +158,19 @@ def intent_callback(hermes, intent_message):
             if state is None:
                 hermes.publish_end_session(
                     intent_message.session_id,
-                    UNKNOWN_TEMPERATURE.format(inject_local_preposition(room))
+                    UNKNOWN_TEMPERATURE.format(add_local_preposition(room))
                 )
                 return
 
             formatted_temperature = state.replace(".", ",")
             hermes.publish_end_session(
                 intent_message.session_id,
-                "Die Temperatur {} beträgt {} Grad.".format(inject_local_preposition(room), formatted_temperature)
+                "Die Temperatur {} beträgt {} Grad.".format(add_local_preposition(room), formatted_temperature)
             )
         else:
             hermes.publish_end_session(
                 intent_message.session_id,
-                "Ich habe keinen Temperatursensor {} gefunden.".format(inject_local_preposition(room))
+                "Ich habe keinen Temperatursensor {} gefunden.".format(add_local_preposition(room))
             )
     elif intent_name in (user_intent("increaseItem"), user_intent("decreaseItem")):
         increase = intent_name == user_intent("increaseItem")
@@ -181,7 +193,7 @@ def intent_callback(hermes, intent_message):
                 intent_message.session_id,
                 "Ich habe {} {} {}".format(
                     gd.get(device_property, Case.ACCUSATIVE),
-                    inject_local_preposition(room),
+                    add_local_preposition(room),
                     "erhöht" if increase else "verringert"
                 )
             )
@@ -193,7 +205,7 @@ def intent_callback(hermes, intent_message):
                 hermes.publish_end_session(
                     intent_message.session_id,
                     "Ich habe die Beleuchtung {} {}.".format(
-                        inject_local_preposition(room),
+                        add_local_preposition(room),
                         "eingeschaltet" if increase else "ausgeschaltet"
                     )
                 )
@@ -207,7 +219,7 @@ def intent_callback(hermes, intent_message):
                 hermes.publish_end_session(
                     intent_message.session_id,
                     "Ich habe die gewünschte Temperatur {} auf {} Grad eingestellt".format(
-                        inject_local_preposition(room),
+                        add_local_preposition(room),
                         temperature
                     )
                 )
@@ -217,7 +229,7 @@ def intent_callback(hermes, intent_message):
                 intent_message.session_id,
                 "Ich habe keine Möglichkeit gefunden, um {} {} zu {}".format(
                     gd.get(device_property, Case.ACCUSATIVE),
-                    inject_local_preposition(room),
+                    add_local_preposition(room),
                     "erhöhen" if increase else "verringern"
                 )
             )
@@ -248,16 +260,16 @@ def intent_callback(hermes, intent_message):
 
         if intent_name == user_intent("playMedia"):
             command = "PLAY"
-            response = "Ich habe die Wiedergabe {} fortgesetzt".format(inject_local_preposition(room))
+            response = "Ich habe die Wiedergabe {} fortgesetzt".format(add_local_preposition(room))
         elif intent_name == user_intent("pauseMedia"):
             command = "PAUSE"
-            response = "Ich habe die Wiedergabe {} pausiert".format(inject_local_preposition(room))
+            response = "Ich habe die Wiedergabe {} pausiert".format(add_local_preposition(room))
         elif intent_name == user_intent("nextMedia"):
             command = "NEXT"
-            response = "Die aktuelle Wiedergabe wird im {} übersprungen".format(inject_local_preposition(room))
+            response = "Die aktuelle Wiedergabe wird im {} übersprungen".format(add_local_preposition(room))
         else:
             command = "PREVIOUS"
-            response = "Im {} geht es zurück zur vorherigen Wiedergabe".format(inject_local_preposition(room))
+            response = "Im {} geht es zurück zur vorherigen Wiedergabe".format(add_local_preposition(room))
 
         openhab.send_command_to_devices(items, command)
         hermes.publish_end_session(
@@ -279,5 +291,6 @@ if __name__ == "__main__":
     mqtt_opts = MqttOptions(username=MQTT_USERNAME, password=MQTT_PASSWORD, broker_address=MQTT_BROKER_ADDRESS)
 
     with Hermes(mqtt_options=mqtt_opts) as h:
+        inject_items(h)
         h.subscribe_intents(intent_callback)
         h.start()

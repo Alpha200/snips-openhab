@@ -1,4 +1,4 @@
 requests
-hermes-python>=0.4.0
+hermes-python>=0.7.0
 gender-determinator==0.2.1
 toml>=0.10.0

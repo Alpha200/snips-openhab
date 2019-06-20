@@ -1,3 +1,5 @@
+from itertools import chain
+
 import requests
 
 
@@ -95,6 +97,12 @@ class OpenHAB:
                 self.locations[item.name] = item
 
             self.items.append(item)
+
+    def get_injections(self):
+        item_names = set(chain.from_iterable((item.aliases for item in self.items if not item.is_location)))
+        location_names = set(chain.from_iterable((item.aliases for item in self.items if item.is_location)))
+
+        return list(item_names), list(location_names)
 
     def get_relevant_items(self, spoken_items, spoken_room=None, item_type="Switch", item_filter='and'):
         if isinstance(spoken_items, list):
