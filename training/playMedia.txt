@@ -1,0 +1,14 @@
+Spiele in der [Küche](room) erneut Musik
+Fortsetzung der Wiedergabe
+Setze die Wiedergabe im [Keller](room) fort
+Musik weiterspielen
+Spiele die Musik im [Esszimmer](room) weiter
+Spiele die Musik weiter
+Spiele erneut Musik im [Badezimmer](room)
+Spiele wieder Musik
+Die Musik wieder fortsetzen
+Spiele im [Wohnzimmer](room) wieder Musik
+Setze die Wiedergabe fort
+Die Wiedergabe in der [Küche](room) fortsetzen
+Die Wiedergabe fortsetzen
+Setze die Wiedergabe im [Schlafzimmer](room) fort

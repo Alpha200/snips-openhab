@@ -1,0 +1,19 @@
+Schalte den [Schlafmodus](device) aus
+Schalte das [Licht](device) und die [Anlage](device) im [Schlafzimmer](room) aus
+Schalte die [Anlage](device) und den [Fernseher](device) aus
+Schalte den [Ventialtor](device) aus
+Schalte den [Fernseher](device) ab
+Schalte den [Schalter](device) in der [Küche](room) aus
+Schalte mir bitte den [Bildschirm](device) im [Wohnzimmer](room) aus
+Deaktiviere die [Hintergrundbeleuchtung](device) im [Esszimmer](room)
+Schalte alle [Steckdosen](device) in der [Wohnung](room) aus
+Schalte bitte die [Hintergrundbeleuchtung](device) aus
+Kannst du mir den [Fernseher](device) im [Bad](room) aus machen
+Schalte mir bitte das [Licht](device) in der [Küche](room) aus
+Schalte die [Anlage](device) aus
+Mach den [Fernseher](device) im [Badezimmer](room) aus
+Das [Licht](device) im [Esszimmer](room) kannst du ausschalten
+Deaktiviere das [Licht](device) im [Wohnzimmer](room)
+Schalte die [Bettlampe](device) aus
+Schalte die [Lampe](device) aus
+Schalte das [Licht](device) im [Schlafzimmer](room) aus

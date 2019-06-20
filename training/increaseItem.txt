@@ -1,0 +1,13 @@
+Verstärke die [Lautstärke](property) im [Esszimmer](room)
+Kannst du die [Helligkeit](property) im [Wohnzimmer](room) erhöhen
+Mache die [Musik](device) [lauter](property)
+Mache die [Küche](room) [heller](device)
+Die [Helligkeit](property) in der [Küche](room) erhöhen
+[Lautstärke](property) erhöhen
+Mache die [Lampe](device) im [Wohnzimmer](room) [heller](property)
+Mache die [Anlage](device) [lauter](property)
+Erhöhe die [Lautstärke](property) der [Anlage](device) im [Wohnzimmer](room)
+Erhöhe die [Lautstärke](property) der [Anlage](device)
+Erhöhe die [Lautstärke](property)
+Erhöhe die [Helligkeit](property) im [Esszimmer](room)
+Erhöhe die [Helligkeit](property)

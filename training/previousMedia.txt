@@ -1,0 +1,12 @@
+Spiele das vorherige Lied im [Esszimmer](room)
+Gehe im [Wohnzimmer](room) zum vorherigen Lied
+Wechsle im [Wohnzimmer](room) zum Lied davor
+Spiele im [Esszimmer](room) das Lied davor
+Spiele das Lied davor
+Wechsle zurück zum vorherigen Song
+Zurück zum vorherigen Song
+Spiele im [Wohnzimmer](room) noch einmal das vorherige Lied
+Spiele in der [Küche](room) das vorherige Lied
+Spiele das vorherige Lied
+Wechsle im [Schlafzimmer](room) zum vorherigen Song
+Wechsle zum vorherigen Lied

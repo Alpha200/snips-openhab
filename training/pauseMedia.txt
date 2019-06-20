@@ -1,0 +1,17 @@
+Halte die Musik an
+Wiedergabe anhalten
+Die Musik im [Schlafzimmer](room) anhalten
+Die Wiedergabe im [Keller](room) pausieren
+Wiedergabe in der [Küche](room) pausieren
+Wiedergabe pausieren
+Pausiere die Wiedergabe im [Schlafzimmer](room)
+Halte die Wiedergabe an
+Pausiere die Wiedergabe
+Halte die Musik im [Badezimmer](room) an
+Pausiere das Lied im [Esszimmer](room)
+Pausiere den Song
+Pausiere das Lied
+Pausiere das Lied in der [Küche](room)
+Halte die Musik an
+Pausiere die Musik
+Pausiere die Musik im [Wohnzimmer](room)

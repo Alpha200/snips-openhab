@@ -1,0 +1,22 @@
+Schalte den [Schlafmodus](device) an
+Schalte das [Licht](device) und den [Fernseher](device) im [Wohnzimmer](room) an
+Schalte den [Fernseher](device) und die [Anlage](device) an
+Schalte den [Ventilator](device) an
+Schalte alle [Steckdosen](device) in der [Wohnung](room) an
+Schalte die [Steckdose](device) an
+Aktiviere die [Steckdose](device) im [Esszimmer](room)
+Schalte den [Schalter](device) im [Wohnzimmer](room) an
+Schalte mir bitte die [Beleuchtung](device) in der [Küche](room) an
+Kannst du uns den [Fernseher](device) an machen
+Schalte mir bitte die [Anlage](device) an
+Schalte mir bitte das [Licht](device) an
+Kannst du das [Licht](device) einschalten
+Schalte im [Wohnzimmer](room) die [Lampe](device) an
+Aktiviere die [Bettlampe](device) im [Schlafzimmer](room)
+Schalte die [Beleuchtung](device) in der [Küche](room) an
+Schalte die [Lampe](device) im [Esszimmer](room) an
+Schalte das [Licht](device) im [Wohnzimmer](room) an
+Schalte die [Anlage](device) an
+Aktiviere den [Fernseher](device)
+Schalte den [Fernseher](device) an
+Schalte das [Licht](device) an

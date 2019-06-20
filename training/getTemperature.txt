@@ -1,0 +1,18 @@
+Wie viel Grad sind es im [Badezimmer](room)
+Wie lautet die Zimmertemperatur
+Gib mir bitte die aktuelle Raumtemperatur der [Küche](room)
+Kannst du mir sagen wie warm es hier ist
+Sage mir die Temperatur des [Wohnzimmer](room) an
+Nenne mir die Temperatur des [Schlafzimmer](room)
+Ist es in diesem Raum kalt
+Ist es im [Schlafzimmer](room) kalt
+Wie lautet die Temperatur für diesen Raum
+Wie warm ist es in der [Küche](room)
+Ist es in der [Küche](room) kalt
+Wie lautet die Zimmertemperatur
+Wie warm ist es in diesem Zimmer
+Wie warm ist es in diesem Raum
+Wie warm ist es hier
+Wie lautet die Raumtemperatur
+Ist es im [Wohnzimmer](room) kalt
+Wie warm ist es im [Wohnzimmer](room)

@@ -1,0 +1,12 @@
+Ändere die [Raumtemperatur](property) in der [Küche](room) auf [19,5](value) Grad
+Ändere die [Helligkeit](property) auf [75%](percentValue)
+Stelle die [Lautstärke](property) im [Wohnzimmer](room) auf Stufe [8](value)
+Stelle die [Bettlampe](device) auf [20%](percentValue) [Helligkeit](property)
+Stelle das [Thermostat](device) im [Bad](room) auf Stufe [2](value)
+Stelle die [Lautstärke](property) auf [10%](percentValue)
+Stelle die [Helligkeit](property) im [Schlafzimmer](room) auf [100%](percentValue)
+Stelle die [Temperatur](property) der [Küche](room) auf [20](value) Grad
+Setze die [Raumtemperatur](property) auf [21](value) Grad
+Setze die [Helligkeit](property) der [Bettlampe](device) auf [30%](percentValue)
+Setze die [Lautstärke](property) auf Stufe [30](value)
+Setze die [Temperatur](property) im [Wohnzimmer](room) auf [20,5](value) Grad

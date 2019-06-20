@@ -1,0 +1,17 @@
+Skippe das aktuelle Lied im [Wohnzimmer](room)
+Spiele im [Schlafzimmer](room) das nächste Lied
+Wechsle in der [Küche](room) zum nächsten Lied
+Überspringe das aktuelle Lied im [Esszimmer](room)
+Überspringe das Lied
+Spiele das nächste Lied
+Gehe in der [Küche](room) zum nächsten Song
+Gehe ein Lied weiter
+Skippe das aktuelle Lied
+Spiele im [Schlafzimmer](room) das nächste Lied
+Wechsle zum nächsten Lied
+Wechsle zum nächsten Song
+Spiele im [Wohnzimmer](room) das nächste Lied
+Weiter zum nächsten Lied
+Überspringe das aktuelle Lied
+Überspringe den atuellen Song
+Spiele den nächsten Song

@@ -1,0 +1,13 @@
+Reduziere die [Helligkeit](property) im [Wohnzimmer](room)
+Kannst du die [Lautstärke](property) reduzieren
+Kannst du die [Musik](device) [leiser](property) machen
+Mache die [Musik](device) [leiser](property)
+Mache die [Küche](room) [dunkler](property)
+Die [Helligkeit](property) in der [Küche](room) verringern
+[Lautstärke](property) verringern
+Mache das [Esszimmer](room) [dunkler](property)
+Mache die [Anlage](device) [leiser](property)
+Mache die [Lampe](device) im [Wohnzimmer](room) [dunkler](property)
+Verringere die [Helligkeit](property) der [Deckenlampe](device) in der [Küche](room)
+Verringere die [Lautstärke](property)
+Verringere die [Lautstärke](property) im [Wohnzimmer](room)
