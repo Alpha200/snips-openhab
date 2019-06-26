@@ -132,16 +132,26 @@ def intent_callback(hermes, intent_message):
 
         relevant_devices = openhab.get_relevant_items(devices, room, item_filter='or')
 
+        # The user is allowed to ommit the room if the request matches exactly one device in the users home (e.g.
+        # if there is only one tv) or if the request contains only devices of the current room
         if room is None and len(relevant_devices) > 1:
-            # The user is allowed to ommit the room if the request matches exactly one device in the users home (e.g.
-            # if there is only one tv) or if the request contains only devices of the current room
             print("Request without room matched more than one item. Requesting again with current room.")
 
             room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
             relevant_devices = openhab.get_relevant_items(devices, room, item_filter='or')
 
+            if len(relevant_devices) == 0:
+                hermes.publish_end_session(
+                    intent_message.session_id,
+                    "Deine Anfrage war nicht eindeutig genug"
+                )
+                return
+
         if len(relevant_devices) == 0:
-            hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
+            hermes.publish_end_session(
+                intent_message.session_id,
+                "Ich habe kein Gerät gefunden, welches zu deiner Anfrage passt"
+            )
             return
 
         openhab.send_command_to_devices(relevant_devices, command)
