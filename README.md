@@ -2,23 +2,32 @@
 
 Skill für [Snips.ai](https://snips.ai) zur Ansteuerung von Geräten mit [OpenHAB](https://openhab.org).
 
-## Parameter
+## Konfiguration
+
+Folgende secret-Parameter müssen konfiguriert werden:
 
 * openhab_server_url: URL des OpenHAB-Servers (z.B. http://localhost:8080)
 * room_of_device_default: Name des Raums, in dem sich das Snips-Gerät mit der Kennzeichnung default befindet
+
+Snips-OpenHAB verwendet [Semantic Tagging](https://community.openhab.org/t/habot-walkthrough-2-n-semantic-tagging-item-resolving/), um die korrekten Items zu finden.
+
+**Wichtig**: Snips-OpenHAB findet nur Items, die Teil einer Gruppe sind, welche als eine Location getaggt ist.
 
 ## Verwendung
 
 Aktuell sind folgende Befehle implementiert:
 
-* Geräte ein- und ausschalten
+* Items vom Typ Switch ein- und ausschalten
 * Die Temperatur eines Raums ausgeben
-* Werte erhöhen und verringern
-* Die Steuerung einer Wiedergabe
+* Items vom Typ Dimmer erhöhen und verringern
+* Items vom Typ Player steuern (Play, Pause, Next, Previous)
 
-Snips-OpenHAB verwendet [Semantic Tagging](https://community.openhab.org/t/habot-walkthrough-2-n-semantic-tagging-item-resolving/), um die korrekten Items zu finden.
+Bei Anfragen muss stets der Raum genannt werden, in dem sich das Gerät befindet. Es gibt nur die folgenden Ausnahmen:
 
-Die Trainingsdaten für die einzelnen Intens befinden sich im Unterordner `training`.
+* Die Anfrage referenziert eindeutig ein Gerät (z.B. Fernseher den einzigen Fernseher). Sagt der Nutzer z.B. Tischlampe und es gibt mehr als ein Item in der Wohnung mit dem Label Tischlampe funktioniert dies nicht.
+* Die angesprochenen Geräte befinden sich im aktuellen Raum
+
+Die Trainingsdaten für die einzelnen Intens befinden sich zur Dokumentation im Unterordner `training`.
 
 ### Geräte ein- und ausschalten
 
@@ -28,6 +37,13 @@ Items vom Typ `Switch` lassen sich wie folgt ein- und ausschalten:
 * Schalte das Licht im Schlafzimmer an
 * Schalte mir bitte die Hintergrundbeleuchtung aus
 * Schalte die Steckdosen in der Wohnung aus
+
+Es ist ebenfalls möglich mehrere Items auf einmal ein- und auszuschalten:
+
+* Schalte die Anlage und den Fernseher ein
+
+Die Items müssen sich dazu im selben Raum befinden.
+Die Angabe von mehreren Räumen auf einmal wird aktuell nicht unterstützt.
 
 Beispiel:
 
@@ -99,6 +115,5 @@ Switch Ventilator "Ventilator" [%.1f °C]" <temperature> (schlafzimmer) { synony
 
 Die App ist Multi-Room-fähig. Wird der Raum in einem Befehl weggelassen sucht
 Snips-OpenHAB nach Geräten in dem Raum, in dem sich der angesprochene Snips-Satellit befindet.
-Dazu wird die ```siteID``` als Raumname verwendet. Für das Gerät ```default``` wird als Raumname der Wert des Parameters ```room_of_device_default``` verwendet.
-
-Snips-OpenHAB verwendet zur Raumbestimmung ebenfalls [Semantic Tagging](https://community.openhab.org/t/habot-walkthrough-2-n-semantic-tagging-item-resolving/).
+Dazu wird die ```siteID``` als Raumname verwendet. 
+Für das Gerät ```default``` wird als Raumname der Wert des Parameters ```room_of_device_default``` verwendet.
