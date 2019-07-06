@@ -11,7 +11,7 @@ Folgende secret-Parameter müssen konfiguriert werden:
 
 Snips-OpenHAB verwendet [Semantic Tagging](https://community.openhab.org/t/habot-walkthrough-2-n-semantic-tagging-item-resolving/), um die korrekten Items zu finden.
 
-**Wichtig**: Snips-OpenHAB findet nur Items, die Teil einer Gruppe sind, welche als eine Location getaggt ist.
+**Wichtig**: Snips-OpenHAB findet nur Items, die Teil einer Gruppe sind, welche als eine Location getaggt ist. Desweiteren muss in der Paper UI unter Preferences die Sprache von OpenHAB auf deutsch eingestellt werden.
 
 ## Verwendung
 
