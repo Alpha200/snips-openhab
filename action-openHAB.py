@@ -1,34 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import configparser
-from hermes_python.hermes import Hermes, MqttOptions
-from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest, AddFromVanillaInjectionRequest
+from assistant import Assistant
 from openhab import OpenHAB
 from genderdeterminator import GenderDeterminator, Case
-import io
-import toml
 
-MQTT_USERNAME = None
-MQTT_PASSWORD = None
-MQTT_BROKER_ADDRESS = "localhost:1883"
-
-CONFIGURATION_ENCODING_FORMAT = "utf-8"
-CONFIG_INI = "config.ini"
 USER_PREFIX = "Alpha200"
 
 gd = GenderDeterminator()
 
 
-def inject_items(hermes):
-    conf = read_configuration_file(CONFIG_INI)
-    openhab = OpenHAB(conf['secret']['openhab_server_url'])
+def inject_items(assistant):
+    openhab = OpenHAB(assistant.conf['secret']['openhab_server_url'])
     openhab.load_items()
     items, locations = openhab.get_injections()
 
-    hermes.request_injection(InjectionRequestMessage([
-        AddFromVanillaInjectionRequest(dict(device=items, room=locations))
-    ]))
+    assistant.inject(dict(device=items, room=locations))
 
 
 def add_local_preposition(noun):
@@ -39,23 +26,6 @@ def add_local_preposition(noun):
 
 def user_intent(intent_name):
     return "{}:{}".format(USER_PREFIX, intent_name)
-
-
-class SnipsConfigParser(configparser.SafeConfigParser):
-    def to_dict(self):
-        return {
-            section: {option_name: option for option_name, option in self.items(section)} for section in self.sections()
-        }
-
-
-def read_configuration_file(configuration_file):
-    try:
-        with io.open(configuration_file, encoding=CONFIGURATION_ENCODING_FORMAT) as f:
-            conf_parser = SnipsConfigParser()
-            conf_parser.read_file(f)
-            return conf_parser.to_dict()
-    except (IOError, configparser.Error):
-        return dict()
 
 
 def get_items_and_room(intent_message):
@@ -71,7 +41,7 @@ def get_items_and_room(intent_message):
 
 
 UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {} möchtest."
-UNKNOWN_TEMPERATURE = "Die Temperatur im {} ist unbekannt."
+UNKNOWN_TEMPERATURE = "Die Temperatur {} ist unbekannt."
 UNKNOWN_PROPERTY = "Ich habe nicht verstanden, welche Eigenschaft verändert werden soll."
 FEATURE_NOT_IMPLEMENTED = "Diese Funktionalität ist aktuell nicht implementiert."
 
@@ -101,211 +71,169 @@ def get_room_for_current_site(intent_message, default_room):
         return intent_message.site_id
 
 
-def intent_callback(hermes, intent_message):
-    intent_name = intent_message.intent.intent_name
+def repeat_last_callback(assistant, intent_message, conf):
+    return None, assistant.last_message
 
-    if intent_name not in (
-        user_intent("switchDeviceOn"),
-        user_intent("switchDeviceOff"),
-        user_intent("getTemperature"),
-        user_intent("increaseItem"),
-        user_intent("decreaseItem"),
-        user_intent("setValue"),
-        user_intent("playMedia"),
-        user_intent("pauseMedia"),
-        user_intent("nextMedia"),
-        user_intent("previousMedia")
-    ):
-        return
 
-    conf = read_configuration_file(CONFIG_INI)
+def switch_on_off_callback(assistant, intent_message, conf):
     openhab = OpenHAB(conf['secret']['openhab_server_url'])
 
-    if intent_name in (user_intent("switchDeviceOn"), user_intent("switchDeviceOff")):
-        devices, room = get_items_and_room(intent_message)
+    devices, room = get_items_and_room(intent_message)
 
-        command = "ON" if intent_name == user_intent("switchDeviceOn") else "OFF"
+    command = "ON" if intent_message.intent.intent_name == user_intent("switchDeviceOn") else "OFF"
 
-        if devices is None:
-            hermes.publish_end_session(intent_message.session_id, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten"))
-            return
+    if devices is None:
+        return False, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten")
 
+    relevant_devices = openhab.get_relevant_items(devices, room, item_filter='or')
+
+    # The user is allowed to ommit the room if the request matches exactly one device in the users home (e.g.
+    # if there is only one tv) or if the request contains only devices of the current room
+    if room is None and len(relevant_devices) > 1:
+        print("Request without room matched more than one item. Requesting again with current room.")
+
+        room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
         relevant_devices = openhab.get_relevant_items(devices, room, item_filter='or')
 
-        # The user is allowed to ommit the room if the request matches exactly one device in the users home (e.g.
-        # if there is only one tv) or if the request contains only devices of the current room
-        if room is None and len(relevant_devices) > 1:
-            print("Request without room matched more than one item. Requesting again with current room.")
-
-            room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
-            relevant_devices = openhab.get_relevant_items(devices, room, item_filter='or')
-
-            if len(relevant_devices) == 0:
-                hermes.publish_end_session(
-                    intent_message.session_id,
-                    "Deine Anfrage war nicht eindeutig genug"
-                )
-                return
-
         if len(relevant_devices) == 0:
-            hermes.publish_end_session(
-                intent_message.session_id,
-                "Ich habe kein Gerät gefunden, welches zu deiner Anfrage passt"
-            )
-            return
+            return False, "Deine Anfrage war nicht eindeutig genug"
 
-        openhab.send_command_to_devices(relevant_devices, command)
-        result_sentence = generate_switch_result_sentence(relevant_devices, command)
-        hermes.publish_end_session(intent_message.session_id, result_sentence)
-    elif intent_name == user_intent("getTemperature"):
-        # TODO: Generalize this case as get property
+    if len(relevant_devices) == 0:
+        return False, "Ich habe kein Gerät gefunden, welches zu deiner Anfrage passt"
 
-        if len(intent_message.slots.room) > 0:
-            room = intent_message.slots.room.first().value
-        else:
-            room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+    openhab.send_command_to_devices(relevant_devices, command)
+    result_sentence = generate_switch_result_sentence(relevant_devices, command)
 
-        items = openhab.get_relevant_items(["temperatur", "messung"], room, "Number")
+    return True, result_sentence
+
+
+def get_temperature_callback(assistant, intent_message, conf):
+    openhab = OpenHAB(conf['secret']['openhab_server_url'])
+    # TODO: Generalize this case as get property
+
+    if len(intent_message.slots.room) > 0:
+        room = intent_message.slots.room.first().value
+    else:
+        room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+
+    items = openhab.get_relevant_items(["temperatur", "messung"], room, "Number")
+
+    if len(items) > 0:
+        state = openhab.get_state(items[0])
+
+        if state is None:
+            return None, UNKNOWN_TEMPERATURE.format(add_local_preposition(room))
+
+        formatted_temperature = state.replace(".", ",")
+        return None, "Die Temperatur {} beträgt {} Grad.".format(add_local_preposition(room), formatted_temperature)
+    else:
+        return False, "Ich habe keinen Temperatursensor {} gefunden.".format(add_local_preposition(room))
+
+
+def increase_decrease_callback(assistant, intent_message, conf):
+    increase = intent_message.intent.intent_name == user_intent("increaseItem")
+
+    if len(intent_message.slots.room) > 0:
+        room = intent_message.slots.room.first().value
+    else:
+        room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+
+    if len(intent_message.slots.property) == 0:
+        return False, UNKNOWN_PROPERTY
+
+    device_property = intent_message.slots.property.first().value
+    openhab = OpenHAB(conf['secret']['openhab_server_url'])
+    items = openhab.get_relevant_items([device_property, "sollwert"], room, "Dimmer")
+
+    if len(items) > 0:
+        openhab.send_command_to_devices(items, "INCREASE" if increase else "DECREASE")
+        return True, "Ich habe {} {} {}".format(
+            gd.get(device_property, Case.ACCUSATIVE),
+            add_local_preposition(room),
+            "erhöht" if increase else "verringert"
+        )
+    elif device_property == "Helligkeit":
+        items = openhab.get_relevant_items("Licht", room, "Switch")
 
         if len(items) > 0:
-            state = openhab.get_state(items[0])
-
-            if state is None:
-                hermes.publish_end_session(
-                    intent_message.session_id,
-                    UNKNOWN_TEMPERATURE.format(add_local_preposition(room))
-                )
-                return
-
-            formatted_temperature = state.replace(".", ",")
-            hermes.publish_end_session(
-                intent_message.session_id,
-                "Die Temperatur {} beträgt {} Grad.".format(add_local_preposition(room), formatted_temperature)
+            openhab.send_command_to_devices(items, "ON" if increase else "OFF")
+            return True, "Ich habe die Beleuchtung {} {}.".format(
+                add_local_preposition(room),
+                "eingeschaltet" if increase else "ausgeschaltet"
             )
-        else:
-            hermes.publish_end_session(
-                intent_message.session_id,
-                "Ich habe keinen Temperatursensor {} gefunden.".format(add_local_preposition(room))
-            )
-    elif intent_name in (user_intent("increaseItem"), user_intent("decreaseItem")):
-        increase = intent_name == user_intent("increaseItem")
-
-        if len(intent_message.slots.room) > 0:
-            room = intent_message.slots.room.first().value
-        else:
-            room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
-
-        if len(intent_message.slots.property) == 0:
-            hermes.publish_end_session(intent_message.session_id, UNKNOWN_PROPERTY)
-            return
-
-        device_property = intent_message.slots.property.first().value
-        items = openhab.get_relevant_items([device_property, "sollwert"], room, "Dimmer")
+    elif device_property == "Temperatur":
+        items = openhab.get_relevant_items([device_property, "sollwert"], room, "Number")
 
         if len(items) > 0:
-            openhab.send_command_to_devices(items, "INCREASE" if increase else "DECREASE")
-            hermes.publish_end_session(
-                intent_message.session_id,
-                "Ich habe {} {} {}".format(
-                    gd.get(device_property, Case.ACCUSATIVE),
-                    add_local_preposition(room),
-                    "erhöht" if increase else "verringert"
-                )
+            temperature = float(openhab.get_state(items[0]))
+            temperature = temperature + (1 if increase else -1)
+            openhab.send_command_to_devices([items[0]], str(temperature))
+            return True, "Ich habe die gewünschte Temperatur {} auf {} Grad eingestellt".format(
+                add_local_preposition(room),
+                temperature
             )
-        elif device_property == "Helligkeit":
-            items = openhab.get_relevant_items("Licht", room, "Switch")
 
-            if len(items) > 0:
-                openhab.send_command_to_devices(items, "ON" if increase else "OFF")
-                hermes.publish_end_session(
-                    intent_message.session_id,
-                    "Ich habe die Beleuchtung {} {}.".format(
-                        add_local_preposition(room),
-                        "eingeschaltet" if increase else "ausgeschaltet"
-                    )
-                )
-        elif device_property == "Temperatur":
-            items = openhab.get_relevant_items([device_property, "sollwert"], room, "Number")
-
-            if len(items) > 0:
-                temperature = float(openhab.get_state(items[0]))
-                temperature = temperature + (1 if increase else -1)
-                openhab.send_command_to_devices([items[0]], str(temperature))
-                hermes.publish_end_session(
-                    intent_message.session_id,
-                    "Ich habe die gewünschte Temperatur {} auf {} Grad eingestellt".format(
-                        add_local_preposition(room),
-                        temperature
-                    )
-                )
-
-        if len(items) == 0:
-            hermes.publish_end_session(
-                intent_message.session_id,
-                "Ich habe keine Möglichkeit gefunden, um {} {} zu {}".format(
-                    gd.get(device_property, Case.ACCUSATIVE),
-                    add_local_preposition(room),
-                    "erhöhen" if increase else "verringern"
-                )
-            )
-    elif intent_name == user_intent("setValue"):
-        hermes.publish_end_session(
-            intent_message.session_id,
-            FEATURE_NOT_IMPLEMENTED
+    if len(items) == 0:
+        return False, "Ich habe keine Möglichkeit gefunden, um {} {} zu {}".format(
+            gd.get(device_property, Case.ACCUSATIVE),
+            add_local_preposition(room),
+            "erhöhen" if increase else "verringern"
         )
-    elif intent_name in [
-        user_intent("playMedia"),
-        user_intent("pauseMedia"),
-        user_intent("nextMedia"),
-        user_intent("previousMedia")
-    ]:
-        if len(intent_message.slots.room) > 0:
-            room = intent_message.slots.room.first().value
-        else:
-            room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
 
-        items = openhab.get_relevant_items("fernbedienung", room, "Player")
 
-        if len(items) == 0:
-            hermes.publish_end_session(
-                intent_message.session_id,
-                "Ich habe kein Gerät gefunden, auf dem die Wiedergabe geändert werden kann."
-            )
-            return
+def set_value_callback(assistant, intent_message, conf):
+    return None, FEATURE_NOT_IMPLEMENTED
 
-        if intent_name == user_intent("playMedia"):
-            command = "PLAY"
-            response = "Ich habe die Wiedergabe {} fortgesetzt".format(add_local_preposition(room))
-        elif intent_name == user_intent("pauseMedia"):
-            command = "PAUSE"
-            response = "Ich habe die Wiedergabe {} pausiert".format(add_local_preposition(room))
-        elif intent_name == user_intent("nextMedia"):
-            command = "NEXT"
-            response = "Die aktuelle Wiedergabe wird im {} übersprungen".format(add_local_preposition(room))
-        else:
-            command = "PREVIOUS"
-            response = "Im {} geht es zurück zur vorherigen Wiedergabe".format(add_local_preposition(room))
 
-        openhab.send_command_to_devices(items, command)
-        hermes.publish_end_session(
-            intent_message.session_id,
-            response
-        )
+def player_callback(assistant, intent_message, conf):
+    if len(intent_message.slots.room) > 0:
+        room = intent_message.slots.room.first().value
+    else:
+        room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+
+    openhab = OpenHAB(conf['secret']['openhab_server_url'])
+    items = openhab.get_relevant_items("fernbedienung", room, "Player")
+
+    if len(items) == 0:
+        return False, "Ich habe kein Gerät gefunden, an dem ich die Wiedergabe ändern kann."
+
+    intent_name = intent_message.intent.intent_name
+
+    if intent_name == user_intent("playMedia"):
+        command = "PLAY"
+        response = "Ich habe die Wiedergabe {} fortgesetzt".format(add_local_preposition(room))
+    elif intent_name == user_intent("pauseMedia"):
+        command = "PAUSE"
+        response = "Ich habe die Wiedergabe {} pausiert".format(add_local_preposition(room))
+    elif intent_name == user_intent("nextMedia"):
+        command = "NEXT"
+        response = "Die aktuelle Wiedergabe wird {} übersprungen".format(add_local_preposition(room))
+    else:
+        command = "PREVIOUS"
+        response = "{} geht es zurück zur vorherigen Wiedergabe".format(add_local_preposition(room))
+
+    openhab.send_command_to_devices(items, command)
+    return True, response
 
 
 if __name__ == "__main__":
-    snips_config = toml.load('/etc/snips.toml')
+    with Assistant() as a:
+        a.add_callback(user_intent("switchDeviceOn"), switch_on_off_callback)
+        a.add_callback(user_intent("switchDeviceOff"), switch_on_off_callback)
 
-    if 'mqtt' in snips_config['snips-common'].keys():
-        MQTT_BROKER_ADDRESS = snips_config['snips-common']['mqtt']
-    if 'mqtt_username' in snips_config['snips-common'].keys():
-        MQTT_USERNAME = snips_config['snips-common']['mqtt_username']
-    if 'mqtt_password' in snips_config['snips-common'].keys():
-        MQTT_PASSWORD = snips_config['snips-common']['mqtt_password']
+        a.add_callback(user_intent("getTemperature"), get_temperature_callback)
 
-    mqtt_opts = MqttOptions(username=MQTT_USERNAME, password=MQTT_PASSWORD, broker_address=MQTT_BROKER_ADDRESS)
+        a.add_callback(user_intent("increaseItem"), increase_decrease_callback)
+        a.add_callback(user_intent("decreaseItem"), increase_decrease_callback)
 
-    with Hermes(mqtt_options=mqtt_opts) as h:
-        inject_items(h)
-        h.subscribe_intents(intent_callback)
-        h.start()
+        a.add_callback(user_intent("setValue"), set_value_callback)
+
+        a.add_callback(user_intent("playMedia"), player_callback)
+        a.add_callback(user_intent("pauseMedia"), player_callback)
+        a.add_callback(user_intent("nextMedia"), player_callback)
+        a.add_callback(user_intent("previousMedia"), player_callback)
+
+        a.add_callback(user_intent("repeatLastMessage"), repeat_last_callback)
+
+        inject_items(a)
+        a.start()
