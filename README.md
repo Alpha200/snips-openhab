@@ -8,6 +8,7 @@ Folgende secret-Parameter müssen konfiguriert werden:
 
 * openhab_server_url: URL des OpenHAB-Servers (z.B. http://localhost:8080)
 * room_of_device_default: Name des Raums, in dem sich das Snips-Gerät mit der Kennzeichnung default befindet
+* sound_feedback (off/on): Statt der vollen Sprachausgabe, was der Skill gemacht hat, kann auch nur ein Bestätigungston gespielt werden. Mit der Frage "Was hast du gemacht?" kann das volle Sprachfeedback nachträglich gespielt werden.
 
 Snips-OpenHAB verwendet [Semantic Tagging](https://community.openhab.org/t/habot-walkthrough-2-n-semantic-tagging-item-resolving/), um die korrekten Items zu finden.
 

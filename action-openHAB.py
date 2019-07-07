@@ -7,6 +7,11 @@ from genderdeterminator import GenderDeterminator, Case
 
 USER_PREFIX = "Alpha200"
 
+UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {} möchtest."
+UNKNOWN_TEMPERATURE = "Die Temperatur {} ist unbekannt."
+UNKNOWN_PROPERTY = "Ich habe nicht verstanden, welche Eigenschaft verändert werden soll."
+FEATURE_NOT_IMPLEMENTED = "Diese Funktionalität ist aktuell nicht implementiert."
+
 gd = GenderDeterminator()
 
 
@@ -38,12 +43,6 @@ def get_items_and_room(intent_message):
         room = None
 
     return [x.value for x in intent_message.slots.device.all()], room
-
-
-UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {} möchtest."
-UNKNOWN_TEMPERATURE = "Die Temperatur {} ist unbekannt."
-UNKNOWN_PROPERTY = "Ich habe nicht verstanden, welche Eigenschaft verändert werden soll."
-FEATURE_NOT_IMPLEMENTED = "Diese Funktionalität ist aktuell nicht implementiert."
 
 
 def generate_switch_result_sentence(devices, command):

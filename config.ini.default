@@ -1,7 +1,7 @@
-[global]
-conf_version=2
-
 [secret]
 openhab_server_url=http://localhost:8080
 room_of_device_default=
 sound_feedback=off
+
+[static]
+conf_version=2.0
