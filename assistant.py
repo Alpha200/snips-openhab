@@ -4,7 +4,7 @@ from hermes_python.hermes import Hermes
 from hermes_python.ontology import MqttOptions
 from hermes_python.ontology.injection import InjectionRequestMessage, AddFromVanillaInjectionRequest
 from hermes_python.ontology.tts import RegisterSoundMessage
-
+from os import environ
 
 class Assistant:
     def __init__(self):
@@ -28,6 +28,14 @@ class Assistant:
 
         self.hermes = Hermes(mqtt_options=mqtt_opts)
         self.conf = read_configuration_file()
+
+        if 'OPENHAB_SERVER_URL' in environ:
+            self.conf['secret']['openhab_server_url'] = environ.get('OPENHAB_SERVER_URL')
+        if 'OPENHAB_ROOM_OF_DEVICE_DEFAULT' in environ:
+            self.conf['secret']['room_of_device_default'] = environ.get('OPENHAB_ROOM_OF_DEVICE_DEFAULT')
+        if 'OPENHAB_SOUND_FEEDBACK' in environ:
+            self.conf['secret']['sound_feedback'] = environ.get('OPENHAB_SOUND_FEEDBACK')
+
         self.sound_feedback = self.conf['secret']["sound_feedback"] == "on"
 
     def add_callback(self, intent_name, callback):
