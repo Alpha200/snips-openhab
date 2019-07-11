@@ -6,6 +6,7 @@ from hermes_python.ontology.injection import InjectionRequestMessage, AddFromVan
 from hermes_python.ontology.tts import RegisterSoundMessage
 from os import environ
 
+
 class Assistant:
     def __init__(self):
         self.intents = {}
