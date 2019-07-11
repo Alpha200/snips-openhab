@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import gettext
 from assistant import Assistant
 from openhab import OpenHAB
 from genderdeterminator import GenderDeterminator, Case
 
+_ = gettext.gettext
+
 USER_PREFIX = "Alpha200"
 
-UNKNOWN_DEVICE = "Ich habe nicht verstanden, welches Gerät du {} möchtest."
-UNKNOWN_TEMPERATURE = "Die Temperatur {} ist unbekannt."
-UNKNOWN_PROPERTY = "Ich habe nicht verstanden, welche Eigenschaft verändert werden soll."
-FEATURE_NOT_IMPLEMENTED = "Diese Funktionalität ist aktuell nicht implementiert."
+UNKNOWN_DEVICE = _("I did not understand, which device you wanted to turn {action}.")
+UNKNOWN_TEMPERATURE = _("The temperature {room} is unknown.")
+UNKNOWN_PROPERTY = _("I did not understand which property you wanted to change.")
+FEATURE_NOT_IMPLEMENTED = _("This feature is currently not implemented")
 
 gd = GenderDeterminator()
 
@@ -47,19 +50,22 @@ def get_items_and_room(intent_message):
 
 def generate_switch_result_sentence(devices, command):
     if command == "ON":
-        command_spoken = "eingeschaltet"
+        command_spoken = _("on")
     elif command == "OFF":
-        command_spoken = "ausgeschaltet"
+        command_spoken = _("off")
     else:
         command_spoken = ""
 
     if len(devices) == 1:
-        return "Ich habe dir {} {}.".format(gd.get(devices[0].description(), Case.ACCUSATIVE), command_spoken)
+        return _("I have turned {device} {action}.").format(
+            device=gd.get(devices[0].description(), Case.ACCUSATIVE),
+            action=command_spoken
+        )
     else:
-        return "Ich habe dir {} {}.".format(
-            ", ".join(gd.get(device.description(), Case.ACCUSATIVE) for device in devices[:len(devices) - 1])
-            + " und " + gd.get(devices[len(devices) - 1].description(), Case.ACCUSATIVE),
-            command_spoken
+        return _("I have turned {devices} {action}.").format(
+            devices=", ".join(gd.get(device.description(), Case.ACCUSATIVE) for device in devices[:len(devices) - 1])
+            + " {} ".format(_("and")) + gd.get(devices[len(devices) - 1].description(), Case.ACCUSATIVE),
+            action=command_spoken
         )
 
 
@@ -82,7 +88,7 @@ def switch_on_off_callback(assistant, intent_message, conf):
     command = "ON" if intent_message.intent.intent_name == user_intent("switchDeviceOn") else "OFF"
 
     if devices is None:
-        return False, UNKNOWN_DEVICE.format("einschalten" if command == "ON" else "ausschalten")
+        return False, UNKNOWN_DEVICE.format(action=_("on") if command == "ON" else _("off"))
 
     relevant_devices = openhab.get_relevant_items(devices, room, item_filter='or')
 
@@ -95,10 +101,10 @@ def switch_on_off_callback(assistant, intent_message, conf):
         relevant_devices = openhab.get_relevant_items(devices, room, item_filter='or')
 
         if len(relevant_devices) == 0:
-            return False, "Deine Anfrage war nicht eindeutig genug"
+            return False, _("Your request was not clear enough")
 
     if len(relevant_devices) == 0:
-        return False, "Ich habe kein Gerät gefunden, welches zu deiner Anfrage passt"
+        return False, _("I was not able to find a device that matched your request")
 
     openhab.send_command_to_devices(relevant_devices, command)
     result_sentence = generate_switch_result_sentence(relevant_devices, command)
@@ -121,12 +127,12 @@ def get_temperature_callback(assistant, intent_message, conf):
         state = openhab.get_state(items[0])
 
         if state is None:
-            return None, UNKNOWN_TEMPERATURE.format(add_local_preposition(room))
+            return None, UNKNOWN_TEMPERATURE.format(room=add_local_preposition(room))
 
         formatted_temperature = state.replace(".", ",")
-        return None, "Die Temperatur {} beträgt {} Grad.".format(add_local_preposition(room), formatted_temperature)
+        return None, _("The temperature {room} measures {temperature} degree.").format(room=add_local_preposition(room), temperature=formatted_temperature)
     else:
-        return False, "Ich habe keinen Temperatursensor {} gefunden.".format(add_local_preposition(room))
+        return False, _("I did not find a temperature sensor {room}.").format(room=add_local_preposition(room))
 
 
 def increase_decrease_callback(assistant, intent_message, conf):
@@ -146,19 +152,19 @@ def increase_decrease_callback(assistant, intent_message, conf):
 
     if len(items) > 0:
         openhab.send_command_to_devices(items, "INCREASE" if increase else "DECREASE")
-        return True, "Ich habe {} {} {}".format(
-            gd.get(device_property, Case.ACCUSATIVE),
-            add_local_preposition(room),
-            "erhöht" if increase else "verringert"
+        return True, _("I have {property} {room} {action}").format(
+            property=gd.get(device_property, Case.ACCUSATIVE),
+            room=add_local_preposition(room),
+            action=_("increased") if increase else _("decreased")
         )
     elif device_property == "Helligkeit":
         items = openhab.get_relevant_items("Licht", room, "Switch")
 
         if len(items) > 0:
             openhab.send_command_to_devices(items, "ON" if increase else "OFF")
-            return True, "Ich habe die Beleuchtung {} {}.".format(
-                add_local_preposition(room),
-                "eingeschaltet" if increase else "ausgeschaltet"
+            return True, _("I have turned {action} the lights {room}.").format(
+                room=add_local_preposition(room),
+                action=_("on") if increase else _("off")
             )
     elif device_property == "Temperatur":
         items = openhab.get_relevant_items([device_property, "sollwert"], room, "Number")
@@ -167,16 +173,16 @@ def increase_decrease_callback(assistant, intent_message, conf):
             temperature = float(openhab.get_state(items[0]))
             temperature = temperature + (1 if increase else -1)
             openhab.send_command_to_devices([items[0]], str(temperature))
-            return True, "Ich habe die gewünschte Temperatur {} auf {} Grad eingestellt".format(
-                add_local_preposition(room),
-                temperature
+            return True, _("I have set the temperature {room} to {temperature} degree.").format(
+                room=add_local_preposition(room),
+                temperature=temperature
             )
 
     if len(items) == 0:
-        return False, "Ich habe keine Möglichkeit gefunden, um {} {} zu {}".format(
-            gd.get(device_property, Case.ACCUSATIVE),
-            add_local_preposition(room),
-            "erhöhen" if increase else "verringern"
+        return False, _("I did not find a way to {action} {property} {room}").format(
+            property=gd.get(device_property, Case.ACCUSATIVE),
+            room=add_local_preposition(room),
+            action="erhöhen" if increase else "verringern"
         )
 
 
@@ -194,22 +200,22 @@ def player_callback(assistant, intent_message, conf):
     items = openhab.get_relevant_items("fernbedienung", room, "Player")
 
     if len(items) == 0:
-        return False, "Ich habe kein Gerät gefunden, an dem ich die Wiedergabe ändern kann."
+        return False, _("I did not find a player device.")
 
     intent_name = intent_message.intent.intent_name
 
     if intent_name == user_intent("playMedia"):
         command = "PLAY"
-        response = "Ich habe die Wiedergabe {} fortgesetzt".format(add_local_preposition(room))
+        response = _("I have resumed the playback {room}").format(room=add_local_preposition(room))
     elif intent_name == user_intent("pauseMedia"):
         command = "PAUSE"
-        response = "Ich habe die Wiedergabe {} pausiert".format(add_local_preposition(room))
+        response = _("I have paused the playback {room}").format(room=add_local_preposition(room))
     elif intent_name == user_intent("nextMedia"):
         command = "NEXT"
-        response = "Die aktuelle Wiedergabe wird {} übersprungen".format(add_local_preposition(room))
+        response = _("I have skipped the playback {room}").format(room=add_local_preposition(room))
     else:
         command = "PREVIOUS"
-        response = "{} geht es zurück zur vorherigen Wiedergabe".format(add_local_preposition(room))
+        response = _("I have switched to the previous media {room}").format(room=add_local_preposition(room))
 
     openhab.send_command_to_devices(items, command)
     return True, response
