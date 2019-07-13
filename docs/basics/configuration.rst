@@ -3,6 +3,10 @@ Konfiguration
 
 Damit die App verwendet werden kann müssen sowohl die Parameter der App als auch die OpenHAB Items konfiguriert werden.
 
+.. Important::
+    Die OpenHAB-Konfiguration wird für eine schnellere Reaktionszeit zwischengespeichert. Wenn die OpenHAB-Konfiguration
+    geändert wird muss die App neu gestartet werden.
+
 Snips-App
 ---------
 
