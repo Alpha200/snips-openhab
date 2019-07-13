@@ -51,7 +51,7 @@ die das Gerät angesprochen werden kann.
 
 Sind diese nicht ausreichend lassen sich wie folgt noch weitere Synonyme manuell hinzufügen:
 
-.. code-block::
+.. code-block:: text
 
     Switch Ventilator "Ventilator" [%.1f °C]" <temperature> (schlafzimmer) { synonyms="Propeller,Windmaschine" }
 
@@ -61,7 +61,7 @@ Beispiel
 
 Im Folgenden ist eine Beispielkonfiguration aufgeführt:
 
-.. code-block::
+.. code-block:: text
 
     Group wohnung "Wohnung" <groundfloor> ["Indoor"] { synonyms="haus" }
     Group schlafzimmer "Schlafzimmer" <bedroom> (wohnung) ["Bedroom"]

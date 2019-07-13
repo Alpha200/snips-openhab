@@ -20,7 +20,7 @@ aus der folgenden Grafik verwendet werden:
 
 So kann z.B. der Sprachbefehl "Schalte die Anlage im Schlafzimmer an" mit folgender Konfiguration verwendet werden:
 
-.. code-block::
+.. code-block:: text
 
     Group schlafzimmer "Schlafzimmer" <bedroom> ["Bedroom"]
     Group Anlage "Anlage" <player> (schlafzimmer) ["Receiver"]
