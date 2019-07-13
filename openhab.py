@@ -238,7 +238,7 @@ class OpenHAB:
             else:
                 return items_found.union(set((
                     item for item in self.items.values() if
-                    item.label == (spoken_item or spoken_item in item.synonyms) and
+                    (item.label == spoken_item or spoken_item in item.synonyms) and
                     (item_type is None or item.item_type == item_type))
                 ))
 
