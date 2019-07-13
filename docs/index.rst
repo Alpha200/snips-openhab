@@ -1,8 +1,11 @@
 .. include:: ../README.rst
 
 .. toctree::
-    :caption: Konfiguration
+    :caption: Grundlagen
     :hidden:
     :maxdepth: 2
 
-    configuration/introduction
+    basics/introduction
+    basics/configuration
+    basics/usage
+    basics/training

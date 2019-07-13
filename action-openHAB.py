@@ -266,16 +266,25 @@ def increase_decrease_callback(assistant, intent_message, conf):
         items = openhab.get_items_with_attributes(
             "Point_Control",
             esm_property="Property_Light",
-            location=room,
-            item_type="Switch"
+            location=room
         )
 
         if len(items) > 0:
-            openhab.send_command_to_devices(items, "ON" if increase else "OFF")
-            return True, "Ich habe die Beleuchtung {} {}.".format(
-                add_local_preposition(spoken_room),
-                "eingeschaltet" if increase else "ausgeschaltet"
-            )
+            dimmer_devices = [item for item in items if item.item_type == "Dimmer"]
+            switch_devices = [item for item in items if item.item_type == "Switch"]
+
+            if len(dimmer_devices) > 0:
+                openhab.send_command_to_devices(dimmer_devices, "INCREASE" if increase else "DECREASE")
+
+            if len(switch_devices) > 0:
+                openhab.send_command_to_devices(switch_devices, "ON" if increase else "OFF")
+
+            if len(dimmer_devices) + len(switch_devices) > 0:
+                return True, "Ich habe die Helligkeit {} {}.".format(
+                    add_local_preposition(spoken_room),
+                    "verstärkt" if increase else "verringert"
+                )
+
     elif device_property == "Temperatur":
         items = openhab.get_items_with_attributes("Point_Control", location=room, item_type="Number")
 
