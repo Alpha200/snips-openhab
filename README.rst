@@ -20,6 +20,6 @@ Konfiguration
 Damit der Skill funktionieren kann müssen die Items in OpenHAB mit Tags der Eclipse Smart Home-Ontologie getaggt werden.
 Weitere Informationen dazu befinden sich in der Dokumentation_.
 
-.. _Dokumentation: https://snips-openhab.readthedocs.io/de/latest/
+.. _Dokumentation: https://snips-openhab.readthedocs.io/de/latest/basics/introduction.html
 
 
