@@ -186,7 +186,9 @@ def switch_on_off_callback(assistant, intent_message, conf):
     if room is None and len(relevant_devices) > 1:
         print("Request without room matched more than one item. Requesting again with current room.")
 
-        room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+        spoken_room = get_room_for_current_site(intent_message, conf['secret']['room_of_device_default'])
+        room = openhab.get_location(spoken_room)
+
         relevant_devices = openhab.get_relevant_items(devices, room)
 
         if len(relevant_devices) == 0:
