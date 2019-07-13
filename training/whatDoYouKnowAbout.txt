@@ -1,0 +1,10 @@
+Sag mir was du über den [Fernseher](device) in der [Küche](room) weißt.
+Sag mir was du über den [Garten](room) weißt.
+Sag mir was du über den [Fernseher](device) im [Wohnzimmer](room) weißt.
+Sag mir was du über die [Bettlampe](device) weißt.
+Was weißt du über die [Anlage](device) im [Schlafzimmer](room)?
+Was weißt du über den [Fernseher](device)?
+Was weißt du über die [Anlage](device)?
+Was weißt du über die [Küche](room)?
+Was weißt du über den [Garten](room)?
+Was weißt du über das [Schlafzimmer](room)?

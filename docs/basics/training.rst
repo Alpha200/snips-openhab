@@ -65,3 +65,9 @@ Letztes Feedback wiederholen
 
 .. literalinclude:: ../../training/repeatLastMessage.txt
     :language: text
+
+Informationen über Items ausgeben
+---------------------------------
+
+.. literalinclude:: ../../training/whatDoYouKnowAbout.txt
+    :language: text

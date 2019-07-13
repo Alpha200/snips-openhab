@@ -7,6 +7,7 @@ Aktuell sind folgende Befehle implementiert:
 * Die Temperatur eines Raums ausgeben
 * Items vom Typ Dimmer erhöhen und verringern
 * Items vom Typ Player steuern (Play, Pause, Next, Previous)
+* Informationen über Items ausgeben
 
 Bei Anfragen muss stets der Raum genannt werden, in dem sich das Gerät befindet. Es gibt nur die folgenden Ausnahmen:
 
@@ -69,3 +70,8 @@ Items vom Typ ``Player`` können ebenfalls gesteuert werden:
 * Wechsle zum nächsten Lied
 
 Sie müssen dazu vom Typ ``Point_Control`` sein (z.B. durch das taggen mit ``Control``.
+
+Informationen über Items ausgeben
+---------------------------------
+
+Mit dem Befehl "Was weißt du über ..." lassen sich Informationen über die Item-Konfiguration ausgeben.
