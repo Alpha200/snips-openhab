@@ -33,15 +33,17 @@ def user_intent(intent_name):
 
 
 def get_items_and_room(intent_message):
-    if len(intent_message.slots.device) == 0:
-        return None, None
-
     if len(intent_message.slots.room) > 0:
         room = intent_message.slots.room.first().value
     else:
         room = None
 
-    return [x.value for x in intent_message.slots.device.all()], room
+    if len(intent_message.slots.device) > 0:
+        devices = [x.value for x in intent_message.slots.device.all()]
+    else:
+        devices = None
+
+    return devices, room
 
 
 def generate_switch_result_sentence(devices, command):
@@ -69,6 +71,92 @@ def get_room_for_current_site(intent_message, default_room):
         return default_room
     else:
         return intent_message.site_id
+
+
+def what_do_you_know_about_callback(assistant, intent_message, conf):
+    devices, spoken_room = get_items_and_room(intent_message)
+
+    if spoken_room is not None:
+        room = openhab.get_location(spoken_room)
+
+        if room is None:
+            return False, "Ich habe keinen Ort mit der Bezeichnung {location} gefunden".format(location=spoken_room)
+    else:
+        room = None
+
+    if devices is None and room is not None:
+        result = "Der Ort {spoken_room} trägt die Bezeichnung {room_label}. ".format(
+            spoken_room=spoken_room, room_label=room.label
+        )
+
+        if len(room.synonyms) > 0 or room.semantics is not None:
+            synonyms = room.synonyms
+            if room.semantics is not None:
+                synonyms += openhab.additional_synonyms[room.semantics]
+
+            result += "Ich kenne ihn außerdem unter den Bezeichnungen {synonyms}. ".format(
+                synonyms=", ".join(synonyms)
+            )
+
+        if room.is_part_of is not None:
+            result += "Er liegt im Ort mit der Bezeichnung {other_location}. ".format(
+                other_location=openhab.get_location(room.is_part_of).label
+            )
+
+        return None, result
+
+    if devices is not None and len(devices) > 0:
+        device_spoken = devices[0]
+
+        devices_found = openhab.get_relevant_items(device_spoken, location=room)
+
+        if len(devices_found) > 0:
+            device = devices_found.pop()
+
+            result = "Das Gerät {spoken_item} kenne ich unter der Bezeichnung {label}. ".format(
+                spoken_item=device_spoken, label=device.label
+            )
+
+            if device.is_equipment():
+                result += "Es ist vom Typ Equipment. "
+
+            if device.is_point():
+                result += "Es ist vom Typ Punkt. "
+
+            if len(device.synonyms) > 0 or device.semantics is not None:
+                synonyms = device.synonyms
+                if device.semantics is not None:
+                    synonyms = synonyms + openhab.additional_synonyms[device.semantics]
+
+                result += "Ich kenne es außerdem unter den Bezeichnungen {synonyms}. ".format(
+                    synonyms=", ".join(synonyms)
+                )
+
+            if device.is_part_of is not None:
+                result += "Es ist Teil eines Equipments mit der Bezeichnung {other_device}. ".format(
+                    other_device=openhab.items[device.is_part_of].label
+                )
+
+            if device.is_point_of is not None:
+                result += "Es ist Teil eines Equipments mit der Bezeichnung {equipment}. ".format(
+                    equipment=openhab.items[device.is_point_of].label
+                )
+
+            if device.has_location is not None:
+                result += "Es liegt im Ort mit der Bezeichnung {location}. ".format(
+                    location=openhab.items[device.has_location].label
+                )
+
+            if len(device.has_points) > 0:
+                result += "Es besitzt außerdem Items mit den Bezeichnungen {items}. ".format(items=", ".join(
+                    [openhab.items[item].label for item in device.has_points]
+                ))
+
+            return None, result
+        else:
+            return False, "Ich habe kein Gerät mit der Bezeichnung {device} gefunden.".format(device=device_spoken)
+
+    return None, "Ich habe dich nicht verstanden."
 
 
 def repeat_last_callback(assistant, intent_message, conf):
@@ -273,6 +361,8 @@ if __name__ == "__main__":
         a.add_callback(user_intent("previousMedia"), player_callback)
 
         a.add_callback(user_intent("repeatLastMessage"), repeat_last_callback)
+
+        a.add_callback(user_intent("whatDoYouKnowAbout"), what_do_you_know_about_callback)
 
         openhab = OpenHAB(a.conf['secret']['openhab_server_url'])
 

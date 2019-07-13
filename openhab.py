@@ -70,7 +70,10 @@ class OpenHAB:
         self.fix_inverse_relations()
 
     def load_synonyms(self):
-        self.additional_synonyms = {k: [synonym.lower() for synonym in v.split(',')] for k, v in load_properties("tags/tags_{language}.properties".format(language=self.lang)).items()}
+        self.additional_synonyms = {
+            k: [synonym.lower() for synonym in v.split(',')] for k, v in
+            load_properties("tags/tags_{language}.properties".format(language=self.lang)).items()
+        }
 
         for tag, synonyms in self.additional_synonyms.items():
             for synonym in synonyms:
@@ -81,16 +84,26 @@ class OpenHAB:
 
         if spoken_location in self.reversed_additional_synonyms:
             tags = self.reversed_additional_synonyms[spoken_location]
-            location = next((location for location in self.items.values() if location.is_location() and location.semantics in tags), None)
+            location = next((
+                location for location in self.items.values() if
+                location.is_location() and location.semantics in tags
+            ), None)
 
         if location is None:
-            location = next((location for location in self.items.values() if location.is_location() and (spoken_location.lower() in location.synonyms or spoken_location.lower() == location.label)), None)
+            location = next((
+                location for location in self.items.values() if
+                location.is_location() and (spoken_location.lower() in location.synonyms or
+                                            spoken_location.lower() == location.label)
+            ), None)
 
         return location
 
     def item_is_part_of_location(self, item, location):
         if item.has_location is not None:
-            if location.name == item.has_location or self.item_is_part_of_location(self.items[item.has_location], location):
+            if location.name == item.has_location or self.item_is_part_of_location(
+                    self.items[item.has_location],
+                    location
+            ):
                 return True
         elif item.is_point_of is not None and self.item_is_part_of_location(self.items[item.is_point_of], location):
             return True
@@ -166,6 +179,8 @@ class OpenHAB:
 
         location_names = set(
             chain.from_iterable((item.synonyms for item in self.items.values() if item.is_location()))
+        ).union(
+            (item.label for item in self.items.values() if item.is_location() and item.label is not None)
         ).union(set(
             chain.from_iterable((v for k, v in self.additional_synonyms.items() if k.startswith("Location"))))
         )
@@ -175,7 +190,8 @@ class OpenHAB:
     def filter_by_location(self, items, location):
         return set((item for item in items if self.item_is_part_of_location(item, location)))
 
-    def get_items_with_attributes(self, point_type, esm_property=None, is_part_of_equipment=None, location=None, item_type=None):
+    def get_items_with_attributes(self, point_type, esm_property=None, is_part_of_equipment=None, location=None,
+                                  item_type=None):
         items_found = [item for item in self.items.values() if
                        item.semantics == point_type and
                        (esm_property is None or esm_property == item.relates_to) and
@@ -204,9 +220,15 @@ class OpenHAB:
 
                 for tag in tags_to_search_for:
                     if tag.startswith("Property"):
-                        items_found = items_found.union(set((item for item in self.items.values() if tag == item.relates_to and (item_type is None or item.item_type == item_type))))
+                        items_found = items_found.union(set((
+                            item for item in self.items.values() if
+                            tag == item.relates_to and (item_type is None or item.item_type == item_type)
+                        )))
                     elif tag.startswith("Equipment"):
-                        items_found = items_found.union(set((item for item in self.items.values() if item.semantics == tag and (item_type is None or item.item_type == item_type))))
+                        items_found = items_found.union(set((
+                            item for item in self.items.values() if
+                            item.semantics == tag and (item_type is None or item.item_type == item_type)
+                        )))
 
                 if location is not None:
                     items_found = self.filter_by_location(items_found, location)
@@ -214,7 +236,11 @@ class OpenHAB:
             if len(items_found) > 0:
                 return items_found
             else:
-                return items_found.union(set((item for item in self.items.values() if item.label == spoken_item or spoken_item in item.synonyms and (item_type is None or item.item_type == item_type))))
+                return items_found.union(set((
+                    item for item in self.items.values() if
+                    item.label == (spoken_item or spoken_item in item.synonyms) and
+                    (item_type is None or item.item_type == item_type))
+                ))
 
     def send_command_to_devices(self, devices, command):
         for device in devices:
