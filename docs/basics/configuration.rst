@@ -17,17 +17,17 @@ Die App kann über über die Secret-Parameter der App oder über Umgebungsvariab
 Falls die Umgebungsvariablen gesetzt werden überschreiben diese die Secret-Parameter.
 Folgende Parameter müssen konfiguriert werden:
 
-+------------------------------------------+--------------------------------------------------------------------------------------+
-| ``openhab_server_url``                   | URL des OpenHAB-Servers (z.B. http://localhost:8080)                                 |
-| / ``OPENHAB_SERVER_URL``                 |                                                                                      |
-+------------------------------------------+--------------------------------------------------------------------------------------+
-| ``room_of_device_default``               | Name des Raums, in dem sich das Snips-Gerät mit der Kennzeichnung default befindet.  |
-| / ``OPENHAB_ROOM_OF_DEVICE_DEFAULT``     |                                                                                      |
-+------------------------------------------+--------------------------------------------------------------------------------------+
-| ``sound_feedback``                       | Statt der vollen Sprachausgabe, was die App gemacht hat, kann auch nur ein           |
-| / ``OPENHAB_SOUND_FEEDBACK``             | Bestätigungston gespielt werden. Mit der Frage "Was hast du gemacht?" kann das       |
-| (on / off)                               | volle Sprachfeedback nachträglich gespielt werden.                                   |
-+------------------------------------------+--------------------------------------------------------------------------------------+
++-----------------------------+------------------------------------+--------------------------------------------------------------------------------------+
+| Parameter                   | Umgebungsvariable                  | Beschreibung                                                                         |
++=============================+====================================+======================================================================================+
+| ``openhab_server_url``      | ``OPENHAB_SERVER_URL``             | URL des OpenHAB-Servers (z.B. http://localhost:8080)                                 |
++-----------------------------+------------------------------------+--------------------------------------------------------------------------------------+
+| ``room_of_device_default``  | ``OPENHAB_ROOM_OF_DEVICE_DEFAULT`` | Name des Raums, in dem sich das Snips-Gerät mit der Kennzeichnung default befindet.  |
++-----------------------------+------------------------------------+--------------------------------------------------------------------------------------+
+| ``sound_feedback``          | ``OPENHAB_SOUND_FEEDBACK``         | Statt der vollen Sprachausgabe, was die App gemacht hat, kann auch nur ein           |
+| (on / off)                  | (on / off)                         | Bestätigungston gespielt werden. Mit der Frage "Was hast du gemacht?" kann das       |
+|                             |                                    | volle Sprachfeedback nachträglich gespielt werden.                                   |
++-----------------------------+------------------------------------+--------------------------------------------------------------------------------------+
 
 Multi-Room
 ^^^^^^^^^^
