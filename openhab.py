@@ -162,7 +162,7 @@ class OpenHAB:
                     item.has_points = semantic_config["hasPoint"].split(',')
 
             if "synonyms" in item_result["metadata"]:
-                item.synonyms = [synonym.strip() for synonym in item_result["metadata"]["synonyms"]["value"].split(",")]
+                item.synonyms = [synonym.strip().lower() for synonym in item_result["metadata"]["synonyms"]["value"].split(",")]
 
             self.items[item.name] = item
 
