@@ -44,7 +44,7 @@ Die Temperatur eines Raums lässt sich wie folgt ausgeben:
 * Wie warm ist es hier?
 * Wie viel Grad sind es im Badezimmer
 
-Um die Temperatur eines Raums zu bestimmen sucht Snips-OpenHAB nach
+Um die Temperatur eines Raums zu bestimmen sucht Snips-openHAB nach
 Items vom Typ ``Number`` im gewünschten Raum, die den
 Tag ``Temperature`` und ``Measurement`` besitzen.
 

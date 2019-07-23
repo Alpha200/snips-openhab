@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Snips-OpenHAB'
+project = 'Snips-openHAB'
 copyright = '2019, Daniel Sendzik'
 author = 'Daniel Sendzik'
 

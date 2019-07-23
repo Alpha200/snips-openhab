@@ -11,7 +11,7 @@ Hierzu werden Items in die Kategorien ``Location``, ``Equipment`` und ``Point`` 
 ``Property`` versehen werden.
 
 Die Relationen zwischen ``Locations``, ``Equipments`` und ``Points`` werden durch Gruppen modelliert.
-Durch Tags in der Item-Konfiguration in OpenHAB können die Items annotiert werden. Es können die Tags
+Durch Tags in der Item-Konfiguration in openHAB können die Items annotiert werden. Es können die Tags
 aus der folgenden Grafik verwendet werden:
 
 .. figure:: https://community-openhab-org.s3.dualstack.eu-central-1.amazonaws.com/original/3X/4/2/424749375f6d51214475ac0d2b9000a957d718a7.jpeg
@@ -34,7 +34,7 @@ Dazu bezieht die Anwendung das Label des Items und Synonyme ein. Schließlich fi
 durch den Tag ``Receiver`` vom Typ ``Equipment`` ist. Da die App die Gruppe nicht direkt einschalten kann
 sucht sie nach einem Item innerhalb der Gruppe ``Anlage``, welches vom Typ ``Point_Control_Switch`` ist.
 Durch den Tag ``Switch`` ist dies beim Item ``Anlage_An_Aus`` der Fall und die App sendet über die REST-API von
-OpenHAB den Command ``ON`` an das Item.
+openHAB den Command ``ON`` an das Item.
 
 In den Kapiteln :doc:`Konfiguration <configuration>` und :doc:`Sprachbefehle <usage>` gibt es weitere Informationen zur
 Einrichtung und Verwendung der App.

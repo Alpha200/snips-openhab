@@ -1,10 +1,10 @@
 Konfiguration
 =============
 
-Damit die App verwendet werden kann müssen sowohl die Parameter der App als auch die OpenHAB Items konfiguriert werden.
+Damit die App verwendet werden kann müssen sowohl die Parameter der App als auch die openHAB Items konfiguriert werden.
 
 .. Important::
-    Die OpenHAB-Konfiguration wird für eine schnellere Reaktionszeit zwischengespeichert. Wenn die OpenHAB-Konfiguration
+    Die openHAB-Konfiguration wird für eine schnellere Reaktionszeit zwischengespeichert. Wenn die openHAB-Konfiguration
     geändert wird muss die App neu gestartet werden.
 
 Snips-App
@@ -20,7 +20,7 @@ Folgende Parameter müssen konfiguriert werden:
 +-----------------------------+------------------------------------+--------------------------------------------------------------------------------------+
 | Parameter                   | Umgebungsvariable                  | Beschreibung                                                                         |
 +=============================+====================================+======================================================================================+
-| ``openhab_server_url``      | ``OPENHAB_SERVER_URL``             | URL des OpenHAB-Servers (z.B. http://localhost:8080)                                 |
+| ``openhab_server_url``      | ``OPENHAB_SERVER_URL``             | URL des openHAB-Servers (z.B. http://localhost:8080)                                 |
 +-----------------------------+------------------------------------+--------------------------------------------------------------------------------------+
 | ``room_of_device_default``  | ``OPENHAB_ROOM_OF_DEVICE_DEFAULT`` | Name des Raums, in dem sich das Snips-Gerät mit der Kennzeichnung default befindet.  |
 +-----------------------------+------------------------------------+--------------------------------------------------------------------------------------+
@@ -33,15 +33,15 @@ Multi-Room
 ^^^^^^^^^^
 
 Die App ist Multi-Room-fähig. Wird der Raum in einem Befehl weggelassen sucht
-Snips-OpenHAB nach Geräten in dem Raum, in dem sich der angesprochene Snips-Satellit befindet.
+Snips-openHAB nach Geräten in dem Raum, in dem sich der angesprochene Snips-Satellit befindet.
 Dazu wird die ``siteID`` des Satelliten als Raumname verwendet.
 Für das Gerät ``default`` wird als Raumname der Wert des Parameters ``room_of_device_default`` verwendet.
 
 
-OpenHAB-Konfiguration
+openHAB-Konfiguration
 ---------------------
 
-Damit Snips-OpenHAB verstehen kann, welche Items geschaltet werden müssen,
+Damit Snips-openHAB verstehen kann, welche Items geschaltet werden müssen,
 müssen die Items semantisch getaggt werden. Dies wird hier_ beschrieben.
 
 .. _hier: https://community.openhab.org/t/habot-walkthrough-2-n-semantic-tagging-item-resolving/
