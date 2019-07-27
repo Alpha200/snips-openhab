@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from apscheduler.schedulers.background import BackgroundScheduler
+from hermes_python.ontology.dialogue import InstantTimeValue
+import dateutil.parser
+from datetime import datetime
 
 from assistant import Assistant
 from openhab import OpenHAB
@@ -14,6 +18,7 @@ FEATURE_NOT_IMPLEMENTED = "Diese Funktionalität ist aktuell nicht implementiert
 
 gd = GenderDeterminator()
 openhab = None
+scheduler = None
 
 
 def inject_items(assistant):
@@ -46,23 +51,38 @@ def get_items_and_room(intent_message):
     return devices, room
 
 
-def generate_switch_result_sentence(devices, command):
+def generate_switch_result_sentence(devices, command, run_date=None):
     l_devices = list(devices)
 
-    if command == "ON":
-        command_spoken = "eingeschaltet"
-    elif command == "OFF":
-        command_spoken = "ausgeschaltet"
-    else:
-        command_spoken = ""
-
     if len(l_devices) == 1:
-        return "Ich habe dir {} {}.".format(gd.get(l_devices[0].description(), Case.ACCUSATIVE), command_spoken)
+        formatted_devices = gd.get(l_devices[0].description(), Case.ACCUSATIVE)
     else:
-        return "Ich habe dir {} {}.".format(
-            ", ".join(gd.get(device.description(), Case.ACCUSATIVE) for device in l_devices[:len(l_devices) - 1])
-            + " und " + gd.get(l_devices[len(l_devices) - 1].description(), Case.ACCUSATIVE),
-            command_spoken
+        formatted_devices = ", ".join(gd.get(device.description(), Case.ACCUSATIVE)
+                                      for device in l_devices[:len(l_devices) - 1]) + \
+                            " und " + gd.get(l_devices[len(l_devices) - 1].description(), Case.ACCUSATIVE)
+
+    if run_date is None:
+        if command == "ON":
+            command_spoken = "eingeschaltet"
+        else:
+            command_spoken = "ausgeschaltet"
+
+        return "Ich habe dir {devices} {command}".format(devices=formatted_devices, command=command_spoken)
+    else:
+        if command == "ON":
+            command_spoken = "einschalten"
+        else:
+            command_spoken = "ausschalten"
+
+        if run_date.date() == datetime.now().date():
+            date_formatted = run_date.strftime("um %H:%M Uhr")
+        else:
+            date_formatted = run_date.strftime("am %d.%m. um %H:%M Uhr")
+
+        return "Ich werde dir {devices} {date} {command}".format(
+            devices=formatted_devices,
+            date=date_formatted,
+            command=command_spoken
         )
 
 
@@ -163,6 +183,11 @@ def repeat_last_callback(assistant, intent_message, conf):
     return None, assistant.last_message
 
 
+def clear_timed_callback(assistant, intent_message, conf):
+    scheduler.remove_all_jobs()
+    return True, "Ok, ich werde kein Gerät schalten"
+
+
 def switch_on_off_callback(assistant, intent_message, conf):
     devices, spoken_room = get_items_and_room(intent_message)
 
@@ -209,8 +234,32 @@ def switch_on_off_callback(assistant, intent_message, conf):
                 if point_item.semantics == "Point_Control_Switch":
                     devices.add(point_item)
 
-    openhab.send_command_to_devices(devices, command)
-    result_sentence = generate_switch_result_sentence(relevant_devices, command)
+    if len(intent_message.slots.time) > 0:
+        tp = intent_message.slots.time.first()
+        if isinstance(tp, InstantTimeValue):
+            date = dateutil.parser.parse(tp.value)
+        else:
+            date = dateutil.parser.parse(tp.from_date)
+
+        def switch_items():
+            openhab.send_command_to_devices(devices, command)
+
+        scheduler.add_job(
+            switch_items,
+            'date',
+            (),
+            id='switch-{command}-{devices}'.format(
+                command=command,
+                devices='-'.join((device.description() for device in devices))
+            ),
+            run_date=date,
+            replace_existing=True
+        )
+
+        result_sentence = generate_switch_result_sentence(relevant_devices, command, date)
+    else:
+        openhab.send_command_to_devices(devices, command)
+        result_sentence = generate_switch_result_sentence(relevant_devices, command)
 
     return True, result_sentence
 
@@ -358,6 +407,7 @@ if __name__ == "__main__":
     with Assistant() as a:
         a.add_callback(user_intent("switchDeviceOn"), switch_on_off_callback)
         a.add_callback(user_intent("switchDeviceOff"), switch_on_off_callback)
+        a.add_callback(user_intent("clearTimed"), clear_timed_callback)
 
         a.add_callback(user_intent("getTemperature"), get_temperature_callback)
 
@@ -376,6 +426,9 @@ if __name__ == "__main__":
         a.add_callback(user_intent("whatDoYouKnowAbout"), what_do_you_know_about_callback)
 
         openhab = OpenHAB(a.conf['secret']['openhab_server_url'])
+
+        scheduler = BackgroundScheduler()
+        scheduler.start()
 
         inject_items(a)
         a.start()
