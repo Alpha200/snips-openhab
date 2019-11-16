@@ -1,0 +1,8 @@
+version: '2'
+services:
+  openhab:
+    image: openhab/openhab
+    volumes:
+      - ./test.items:/openhab/conf/items/test.items
+    ports:
+      - 8080:8080

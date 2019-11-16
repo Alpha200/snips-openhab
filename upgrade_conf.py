@@ -1,4 +1,4 @@
-from config import read_configuration_file, write_configuration_file
+from assistant.config import read_configuration_file, write_configuration_file
 
 CURRENT = "2.0"
 

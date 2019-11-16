@@ -1,0 +1,23 @@
+Group wohnung "Wohnung" <groundfloor> ["Indoor"] { synonyms="haus" }
+Group schlafzimmer "Schlafzimmer" <bedroom> (wohnung) ["Bedroom"]
+Group garten "Garten" <garden> ["Garden"]
+Group kueche "Küche" <kitchen> (wohnung) ["Kitchen"]
+Group esszimmer "Esszimmer" <corridor> (wohnung) ["Room"]
+Group wohnzimmer "Wohnzimmer" <corridor> (wohnung) ["LivingRoom"]
+
+Player Audionitrid_Control "Fernbedienung" <mediacontrol> (schlafzimmer) ["Control"]
+Player Wohnzimmer_Control "Fernbedienung" <mediacontrol> (wohnzimmer) ["Control"]
+
+Group Fernseher "Fernseher" <television> (wohnzimmer) ["Screen"]
+Switch Fernseher_An_Aus "Power" <television> (Fernseher) ["Switch"]
+String Fernseher_Input "Quelle" <television> (Fernseher) ["Control"]
+
+Group Anlage "Anlage" <player> (schlafzimmer) ["Receiver"]
+Switch Anlage_An_Aus "Power" <player> (Anlage) ["Switch"]
+Dimmer Anlage_Volume "Lautstärke" <soundvolume> (Anlage) ["SoundVolume"]
+
+Switch Lampe_Esszimmer "Tischlampe"<light> (esszimmer) ["Light"]
+Switch Lampe_Vitrine "Vitrine" <light> (esszimmer) ["Light"]
+Switch Lampe_Bett "Bettlampe" <light> (schlafzimmer) ["Light"]
+
+Number Temperature_Livingroom "Temperatur [%.1f °C]" <temperature> (wohnzimmer) ["Temperature", "Measurement"]
