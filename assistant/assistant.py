@@ -1,10 +1,90 @@
-from config import read_configuration_file
+from assistant.config import read_configuration_file
 import toml
 from hermes_python.hermes import Hermes
 from hermes_python.ontology import MqttOptions
 from hermes_python.ontology.injection import InjectionRequestMessage, AddFromVanillaInjectionRequest
 from hermes_python.ontology.tts import RegisterSoundMessage
-from os import environ
+from os import environ, path
+
+
+class TestIntent:
+    def __init__(self, intent_name):
+        self.intent_name = intent_name
+
+
+class TestValue:
+    def __init__(self, value):
+        self.value = value
+
+
+class TestSlot:
+    def __init__(self, values):
+        self.values = values
+
+    def first(self):
+        if len(self.values) > 0:
+            return self.values[0]
+        else:
+            return None
+
+    def all(self):
+        return self.values
+
+    def __len__(self):
+        return len(self.values)
+
+
+class TestSlots:
+    def __init__(self, slots):
+        self.slots = slots
+
+    def __getattr__(self, item):
+        if item in self.slots:
+            return self.slots[item]
+        else:
+            return []
+
+
+class TestIntentMessage:
+    def __init__(self, intent, slots, site_id="default"):
+        self.intent = intent
+        self.slots = slots
+        self.site_id = site_id
+
+
+class TestAssistant:
+    def __init__(self):
+        self.intents = {}
+        self.conf = dict(
+            secret=dict(room_of_device_default='schlafzimmer')
+        )
+
+    def add_callback(self, intent_name, callback):
+        self.intents[intent_name] = callback
+
+    def register_sound(self, sound_name, sound_data):
+        pass
+
+    def callback(self, intent_message):
+        intent_name = intent_message.intent.intent_name
+
+        if intent_name in self.intents:
+            success, message = self.intents[intent_name](self, intent_message, self.conf)
+            return success, message
+
+    def inject(self, entities):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_val, trace):
+        if not exception_type:
+            return self
+        return False
+
+    def start(self):
+        pass
 
 
 class Assistant:
@@ -83,7 +163,7 @@ class Assistant:
         def helper_callback(hermes, intent_message):
             self.callback(intent_message)
 
-        with open('success.wav', 'rb') as f:
+        with open(path.join(path.dirname(__file__), 'success.wav'), 'rb') as f:
             self.register_sound("success", bytearray(f.read()))
 
         self.hermes.subscribe_intents(helper_callback)
